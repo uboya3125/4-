@@ -48,9 +48,24 @@ function doGet() {
  * ============================================================ */
 
 function ss_() {
-  return SPREADSHEET_ID
-    ? SpreadsheetApp.openById(SPREADSHEET_ID)
-    : SpreadsheetApp.getActiveSpreadsheet();
+  // 1) IDが直接指定されていればそれを使う
+  if (SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
+  // 2) スプレッドシートに紐づいたスクリプトなら、そのシートを使う
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  // 3) 単体スクリプトの場合：初回にデータ用スプレッドシートを自動作成し、以後使い回す
+  const props = PropertiesService.getScriptProperties();
+  const savedId = props.getProperty('DATA_SPREADSHEET_ID');
+  if (savedId) {
+    try {
+      return SpreadsheetApp.openById(savedId);
+    } catch (e) {
+      // 保存済みのシートが削除されていた場合は作り直す
+    }
+  }
+  const created = SpreadsheetApp.create('おすすめパンフレットを作ろう（データ）');
+  props.setProperty('DATA_SPREADSHEET_ID', created.getId());
+  return created;
 }
 
 function ensureSheets_() {
