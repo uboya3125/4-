@@ -2,747 +2,1480 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>小数のしくみ 習熟ツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おすすめパンフレットを作ろう</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --main:#3DAA6E; --accent:#E8913A; --box:#3DAA6E; --sum:#FFF9E6;
-  --int:#FCE4D6; --dec:#DAEEF3; --bg:#F8FAFB; --text:#1A1A1A; --wrong:#D94F4F;
+  --bg:#f3f5f4; --card:#ffffff; --ink:#2c3639; --sub:#64737a;
+  --accent:#3d7ea6; --accent-dark:#2f6383; --accent-bg:#eaf2f7;
+  --green:#4d9e6f; --green-bg:#e8f4ec;
+  --amber:#d9832e; --amber-bg:#faf0e4;
+  --line:#dde4e6; --locked:#b9c3c7; --danger:#c05252;
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent;}
 button{font-family:inherit;cursor:pointer;}
-.app{display:flex;flex-direction:column;min-height:100vh;}
+input,textarea,select{font-family:inherit;font-size:1rem;color:var(--ink);}
+textarea{resize:vertical;}
 
-/* header */
-.header{background:var(--main);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.header h1{font-size:1.05rem;margin:0;font-weight:700;}
-.progress-wrap{flex:1;min-width:180px;max-width:360px;}
-.progress-label{font-size:0.75rem;margin-bottom:2px;}
-.progress-bar{background:rgba(255,255,255,0.35);border-radius:8px;height:12px;overflow:hidden;}
-.progress-fill{background:#fff;height:100%;width:0%;transition:width .4s;}
-.random-btn{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-weight:700;font-size:0.8rem;}
+/* ---------- 画面切り替え ---------- */
+.screen{display:none;max-width:960px;margin:0 auto;padding:16px 14px 80px;}
+.screen.active{display:block;}
 
-/* layout */
-.main{display:flex;flex:1;}
-.tabs{display:flex;flex-direction:column;background:#fff;border-right:1px solid #ddd;min-width:120px;}
-.tab-btn{border:none;background:transparent;padding:16px 10px;text-align:left;font-size:0.85rem;font-weight:700;color:#555;border-left:4px solid transparent;}
-.tab-btn.active{color:var(--main);border-left-color:var(--main);background:#EFFAF3;}
-.content{flex:1;padding:16px;overflow-x:hidden;}
+/* ---------- 共通部品 ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px;}
+.h1{font-size:1.35rem;font-weight:700;margin:6px 0 4px;}
+.h2{font-size:1.1rem;font-weight:700;margin:0 0 8px;}
+.sub{color:var(--sub);font-size:0.88rem;}
+.btn{display:inline-block;border:none;border-radius:10px;background:var(--accent);color:#fff;
+  font-weight:700;font-size:1.05rem;padding:12px 26px;min-height:48px;}
+.btn:hover{background:var(--accent-dark);}
+.btn:disabled{background:var(--locked);cursor:not-allowed;}
+.btn.ghost{background:#fff;color:var(--accent);border:2px solid var(--accent);}
+.btn.ghost:hover{background:var(--accent-bg);}
+.btn.small{font-size:0.9rem;padding:8px 16px;min-height:40px;}
+.btn.green{background:var(--green);}
+.btn.gray{background:#8b989e;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-weight:700;margin-bottom:6px;font-size:1.02rem;}
+.field .hint{font-size:0.85rem;color:var(--sub);background:var(--amber-bg);border-radius:8px;padding:8px 12px;margin:6px 0;}
+.field input[type=text],.field textarea,.field input[type=number]{
+  width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-size:1.05rem;background:#fff;}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.topbar .who{font-weight:700;font-size:1rem;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:6px 16px;}
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:0.8rem;font-weight:700;}
+.badge.done{background:var(--green-bg);color:var(--green);}
+.badge.doing{background:var(--amber-bg);color:var(--amber);}
+.badge.open{background:var(--accent-bg);color:var(--accent);}
+.badge.locked{background:#e8ebec;color:var(--locked);}
+.center{text-align:center;}
 
-@media (max-width:768px){
-  .main{flex-direction:column;}
-  .tabs{flex-direction:row;overflow-x:auto;min-width:auto;border-right:none;border-bottom:1px solid #ddd;}
-  .tab-btn{border-left:none;border-bottom:4px solid transparent;white-space:nowrap;}
-  .tab-btn.active{border-left-color:transparent;border-bottom-color:var(--main);}
-}
+/* ---------- トースト・保存チップ・ローディング ---------- */
+#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--danger);color:#fff;
+  padding:12px 22px;border-radius:12px;font-weight:700;display:none;z-index:200;max-width:90%;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+#save-chip{position:fixed;right:14px;bottom:14px;background:#fff;border:1px solid var(--line);border-radius:20px;
+  padding:7px 16px;font-size:0.85rem;font-weight:700;display:none;z-index:150;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+#save-chip.saving{display:block;color:var(--sub);}
+#save-chip.saved{display:block;color:var(--green);}
+#save-chip.error{display:block;color:var(--danger);}
+#loading{position:fixed;inset:0;background:rgba(243,245,244,.75);display:none;align-items:center;justify-content:center;z-index:300;}
+#loading.show{display:flex;}
+.spinner{width:46px;height:46px;border:5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-/* problem box */
-.problem-box{border:3px solid var(--box);border-radius:14px;padding:16px;background:#fff;max-width:760px;margin:0 auto 14px;}
-.q-badge{display:inline-block;background:var(--accent);color:#fff;font-weight:700;border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;margin-right:8px;font-size:0.85rem;}
-.q-text{font-size:1.2rem;font-weight:700;display:inline;}
-.numbox{font-family:'Courier New',monospace;font-size:1.6rem;font-weight:700;}
+/* ---------- ログイン ---------- */
+.login-wrap{max-width:420px;margin:40px auto 0;}
+.code-input{width:100%;text-align:center;font-size:2.2rem;letter-spacing:0.4em;font-weight:700;
+  border:2px solid var(--line);border-radius:12px;padding:12px;}
+.code-input:focus{outline:none;border-color:var(--accent);}
+.teacher-link{background:none;border:none;color:var(--sub);text-decoration:underline;font-size:0.85rem;margin-top:24px;}
 
-.controls{max-width:760px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-input[type=number]{font-family:'Courier New',monospace;font-size:1.4rem;padding:8px 10px;width:140px;border:2px solid #aaa;border-radius:8px;}
-.btn{border:none;border-radius:8px;padding:10px 20px;font-weight:700;font-size:0.95rem;color:#fff;background:var(--main);}
-.btn.secondary{background:#888;}
-.btn.outline{background:#fff;color:var(--main);border:2px solid var(--main);}
-.hint-btn{background:none;border:2px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 14px;font-size:0.8rem;font-weight:700;}
-.hint-box{background:var(--sum);border:2px solid var(--accent);border-radius:10px;padding:12px;max-width:760px;margin:10px auto;font-size:0.95rem;display:none;}
-.hint-box.show{display:block;}
+/* ---------- ミッションマップ ---------- */
+.mission-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:10px;font-size:1rem;}
+.mission-card:not(:disabled):hover{border-color:var(--accent);}
+.mission-card:disabled{opacity:0.55;cursor:not-allowed;}
+.mission-num{flex:none;width:44px;height:44px;border-radius:50%;background:var(--accent-bg);color:var(--accent);
+  font-weight:700;font-size:1.2rem;display:flex;align-items:center;justify-content:center;}
+.mission-card.is-done .mission-num{background:var(--green);color:#fff;}
+.mission-card .m-title{font-weight:700;font-size:1.05rem;}
+.mission-card .m-sub{font-size:0.83rem;color:var(--sub);}
+.mission-card .m-state{margin-left:auto;flex:none;}
+.journal-cta{display:flex;align-items:center;gap:12px;width:100%;background:var(--amber-bg);border:1px solid #ecd9c0;
+  border-radius:14px;padding:14px 18px;margin-top:16px;font-weight:700;font-size:1.02rem;color:var(--ink);text-align:left;}
+.journal-cta:hover{border-color:var(--amber);}
 
-.feedback{max-width:760px;margin:10px auto;font-size:1.3rem;font-weight:900;min-height:1.6em;}
-.feedback.correct{color:var(--main);}
-.feedback.wrong{color:var(--wrong);}
+/* ---------- ミッション2 カード ---------- */
+.info-card{border:2px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;position:relative;}
+.info-card .num{position:absolute;top:-12px;left:12px;background:var(--accent);color:#fff;border-radius:12px;
+  padding:1px 12px;font-size:0.8rem;font-weight:700;}
+.info-card .del{position:absolute;top:8px;right:8px;background:#fff;border:1px solid var(--line);color:var(--danger);
+  border-radius:8px;padding:4px 10px;font-size:0.8rem;font-weight:700;}
 
-@keyframes pop{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
-.pop-in{animation:pop .35s ease-out;}
+/* ---------- ミッション3 ---------- */
+.format-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+.format-card{border:2px solid var(--line);border-radius:12px;background:#fff;padding:12px;text-align:center;}
+.format-card:hover{border-color:var(--accent);}
+.format-card.selected{border-color:var(--accent);background:var(--accent-bg);}
+.format-card .f-name{font-weight:700;margin-top:4px;}
+.format-card .f-desc{font-size:0.78rem;color:var(--sub);}
+.face-opt{margin-top:14px;padding:12px;background:var(--accent-bg);border-radius:10px;}
+.tpl-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.tpl-btn{border:2px solid var(--line);border-radius:10px;background:#fff;padding:6px;width:86px;}
+.tpl-btn.selected{border-color:var(--accent);background:var(--accent-bg);}
+.tpl-btn .tpl-name{font-size:0.62rem;font-weight:700;display:block;margin-top:3px;line-height:1.3;}
+.tpl-mini{position:relative;width:100%;aspect-ratio:3/4;background:#fafbfb;border:1px solid var(--line);border-radius:4px;}
+.tpl-mini .mb{position:absolute;border-radius:2px;}
+.tpl-mini .mb.photo{background:#cfe0ea;border:1px solid #9fc0d4;}
+.tpl-mini .mb.text{background:#efe9d9;border:1px solid #d8ceb2;}
+.page-card{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px;background:#fff;}
+.page-head{font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+.canvas{position:relative;width:100%;max-width:340px;aspect-ratio:3/4;background:
+  repeating-linear-gradient(0deg,transparent,transparent calc(5% - 1px),#f0f2f2 calc(5% - 1px),#f0f2f2 5%),
+  repeating-linear-gradient(90deg,transparent,transparent calc(5% - 1px),#f0f2f2 calc(5% - 1px),#f0f2f2 5%),#fff;
+  border:2px solid var(--line);border-radius:8px;touch-action:none;overflow:hidden;margin:8px 0;}
+.blk{position:absolute;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:0.78rem;font-weight:700;cursor:grab;user-select:none;touch-action:none;}
+.blk.photo{background:rgba(163,199,222,.55);border:2px dashed #6e9cba;color:#3b6c8d;}
+.blk.text{background:rgba(233,222,189,.55);border:2px dashed #bfae7e;color:#7d6c3d;}
+.blk:active{cursor:grabbing;}
+.blk .blk-handle{position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:4px;
+  background:var(--accent);cursor:nwse-resize;touch-action:none;}
+.blk .blk-handle::after{content:'';position:absolute;right:4px;bottom:4px;width:7px;height:7px;
+  border-right:2px solid #fff;border-bottom:2px solid #fff;}
 
-/* place value table mode1 */
-.place-table{display:flex;justify-content:center;gap:0;margin:18px auto;max-width:560px;}
-.pcell{width:64px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #bbb;font-family:'Courier New',monospace;font-size:1.4rem;font-weight:700;transition:transform .5s;}
-.pcell.intpart{background:var(--int);}
-.pcell.decpart{background:var(--dec);}
-.pcell .lbl{font-size:0.55rem;font-weight:400;color:#555;}
-.pcell.point{background:#fff;border:none;width:14px;font-size:1.4rem;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;}
-.slide-left{transform:translateX(-64px);}
-.slide-right{transform:translateX(64px);}
+/* ---------- ミッション5 まとめ ---------- */
+.summary-box{background:#fafbfb;border:1px solid var(--line);border-radius:10px;padding:14px;
+  white-space:pre-wrap;font-size:0.92rem;max-height:340px;overflow:auto;}
 
-/* mode2 number-line / pochi */
-svg text{font-family:'Noto Sans JP',sans-serif;user-select:none;}
-.pochi{cursor:pointer;}
-.digit-col{font-family:'Courier New',monospace;font-size:1.5rem;font-weight:700;}
+/* ---------- 振り返りジャーナル ---------- */
+.journal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+.hour-card{border:2px solid var(--line);border-radius:12px;background:#fff;padding:12px;text-align:left;min-height:92px;}
+.hour-card:hover{border-color:var(--accent);}
+.hour-card.selected{border-color:var(--accent);background:var(--accent-bg);}
+.hour-card.written{border-left:6px solid var(--green);}
+.hour-card .hc-title{font-weight:700;}
+.hour-card .hc-prev{font-size:0.78rem;color:var(--sub);overflow:hidden;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.comment-box{background:var(--amber-bg);border:1px solid #ecd9c0;border-radius:10px;padding:10px 14px;margin-top:10px;}
+.comment-box .from{font-size:0.8rem;font-weight:700;color:var(--amber);}
 
-/* numpad */
-.numpad-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:50;}
-.numpad-overlay.show{display:flex;}
-.numpad{background:#fff;border-radius:14px;padding:14px;display:grid;grid-template-columns:repeat(3,64px);gap:8px;}
-.numpad button{width:64px;height:54px;font-size:1.3rem;font-weight:700;border:1px solid #ccc;border-radius:8px;background:#f5f5f5;}
-.numpad button.clear{background:#eee;color:var(--wrong);}
-.numpad button.close{grid-column:span 3;background:var(--main);color:#fff;}
-
-/* hissan grid */
-.hissan-table{border-collapse:collapse;margin:14px auto;font-family:'Courier New',monospace;font-size:1.5rem;font-weight:700;}
-.hissan-table td{width:42px;height:46px;text-align:center;border:none;}
-.hissan-table td.given{color:#888;}
-.hissan-table td.point{font-weight:900;}
-.hissan-table tr.opline td{border-bottom:2px solid #333;}
-.hissan-table td.input-cell{border:2px solid #999;border-radius:6px;cursor:pointer;background:#fff;}
-.hissan-table td.input-cell.filled{color:var(--main);}
-.hissan-table td.op-sign{color:#333;}
-
-/* summary modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:60;}
+/* ---------- 教員ページ ---------- */
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:14px;flex-wrap:wrap;}
+.tab-btn{border:none;background:none;padding:10px 18px;font-weight:700;font-size:0.95rem;color:var(--sub);
+  border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tbl{width:100%;border-collapse:collapse;background:#fff;font-size:0.92rem;}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+.tbl th{background:var(--accent-bg);font-size:0.85rem;}
+.tbl tr.clickable{cursor:pointer;}
+.tbl tr.clickable:hover{background:var(--accent-bg);}
+.mark-done{color:var(--green);font-weight:700;}
+.mark-not{color:var(--locked);}
+.scroll-x{overflow-x:auto;}
+.select{border:2px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;font-size:0.95rem;}
+.detail-sec{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+.detail-sec h4{margin:0 0 6px;font-size:0.95rem;color:var(--accent-dark);}
+.detail-sec .dt{white-space:pre-wrap;font-size:0.9rem;}
+.mini-pages{display:flex;gap:10px;flex-wrap:wrap;}
+.mini-page{width:110px;}
+.mini-page .cap{font-size:0.72rem;color:var(--sub);text-align:center;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;
+  justify-content:center;z-index:250;padding:24px 12px;overflow:auto;}
 .modal-overlay.show{display:flex;}
-.modal{background:#fff;border-radius:16px;padding:24px;max-width:420px;width:90%;text-align:center;}
-.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:0.85rem;}
-.bar-track{flex:1;background:#eee;border-radius:6px;height:14px;overflow:hidden;}
-.bar-fill{background:var(--main);height:100%;}
+.modal{background:var(--bg);border-radius:14px;max-width:760px;width:100%;padding:20px;}
+.unwritten{color:var(--locked);font-style:italic;}
 
-.tag{display:inline-block;background:var(--int);border-radius:14px;padding:4px 10px;font-size:0.8rem;margin:2px;}
+@media(max-width:600px){
+  .screen{padding:12px 10px 80px;}
+  .card{padding:14px;}
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <h1>小数のしくみを調べよう</h1>
-    <div class="progress-wrap">
-      <div class="progress-label" id="progressLabel">① 小数点移動　0 / 30 もんせいかい</div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    </div>
-    <button class="random-btn" id="randomBtn">ランダムにまぜてとく</button>
-  </div>
 
-  <div class="main">
+<!-- ============ コード入力 ============ -->
+<section class="screen active" id="screen-login">
+  <div class="login-wrap">
+    <div class="card center">
+      <div class="sub">6年 国語</div>
+      <h1 class="h1">おすすめパンフレットを作ろう</h1>
+      <p class="sub" style="margin-bottom:20px;">自分の<b>4けたのコード</b>（学年・組・出席番号）を入れてね。<br>れい：6年1組3番 → <b>6103</b></p>
+      <input class="code-input" id="code-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+      <div style="margin-top:18px;">
+        <button class="btn" id="btn-login" style="width:100%;">すすむ</button>
+      </div>
+      <button class="teacher-link" id="link-teacher">先生用ページはこちら</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 氏名登録（初回） ============ -->
+<section class="screen" id="screen-name">
+  <div class="login-wrap">
+    <div class="card">
+      <h1 class="h1">はじめまして！</h1>
+      <p>コード <b id="name-code-disp"></b> は、はじめての登録だよ。<br>自分の名前を入れてね。</p>
+      <div class="field">
+        <label for="name-input">名前</label>
+        <input type="text" id="name-input" maxlength="20" placeholder="れい：山田 太郎" autocomplete="off">
+        <div class="hint">まちがえて登録しても、先生があとで直せるので大丈夫。ふざけた名前や友だちの名前は入れないでね。</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn gray" id="btn-name-back">もどる</button>
+        <button class="btn" id="btn-name-ok" style="flex:1;">登録してはじめる</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 本人確認（2回目以降） ============ -->
+<section class="screen" id="screen-confirm">
+  <div class="login-wrap">
+    <div class="card center">
+      <h1 class="h1"><span id="confirm-name"></span>さんですね？</h1>
+      <p class="sub">ちがう場合は「ちがいます」を押して、コードをたしかめてね。</p>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn gray" id="btn-confirm-no" style="flex:1;">ちがいます</button>
+        <button class="btn green" id="btn-confirm-yes" style="flex:2;">はい、わたしです</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ミッションマップ ============ -->
+<section class="screen" id="screen-map">
+  <div class="topbar">
+    <div class="who" id="map-who"></div>
+    <button class="btn ghost small" id="btn-logout">べつの人がつかう</button>
+  </div>
+  <div class="card">
+    <h1 class="h1">ミッションマップ</h1>
+    <p class="sub">1から順にすすめよう。終わったミッションも、あとから直せるよ。</p>
+    <div id="mission-list"></div>
+    <button class="journal-cta" id="btn-journal">
+      <span style="font-size:1.5rem;">📓</span>
+      <span>今日の振り返りを書く<br><span class="sub" style="font-weight:400;">（毎時間の学習ジャーナル・いつでも書けるよ）</span></span>
+    </button>
+  </div>
+</section>
+
+<!-- ============ ミッション画面（共通の入れ物） ============ -->
+<section class="screen" id="screen-mission">
+  <div class="topbar">
+    <button class="btn ghost small" id="btn-mission-back">← ミッションマップにもどる</button>
+    <div class="who" id="mission-who"></div>
+  </div>
+  <div class="card">
+    <div class="sub" id="mission-label"></div>
+    <h1 class="h1" id="mission-title"></h1>
+    <div id="mission-status" style="margin-bottom:12px;"></div>
+    <div id="mission-body"></div>
+  </div>
+</section>
+
+<!-- ============ 振り返りジャーナル ============ -->
+<section class="screen" id="screen-journal">
+  <div class="topbar">
+    <button class="btn ghost small" id="btn-journal-back">← ミッションマップにもどる</button>
+    <div class="who" id="journal-who"></div>
+  </div>
+  <div class="card">
+    <h1 class="h1">📓 振り返りジャーナル</h1>
+    <p class="sub">授業の時間ごとに、今日の学習を振り返って書こう。先生からコメントがとどくこともあるよ。</p>
+    <div class="journal-grid" id="journal-grid"></div>
+    <div id="journal-editor" style="display:none;margin-top:18px;">
+      <h2 class="h2" id="journal-editor-title"></h2>
+      <div class="field">
+        <label for="journal-text">今日の授業でできたこと・気づいたこと・次にがんばりたいこと</label>
+        <textarea id="journal-text" rows="5" placeholder="れい：情報カードを3枚作れた。相手に合わせて言葉をえらぶのがむずかしかった。"></textarea>
+      </div>
+      <div id="journal-comment"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 教員ログイン ============ -->
+<section class="screen" id="screen-teacher-login">
+  <div class="login-wrap">
+    <div class="card center">
+      <h1 class="h1">先生用ページ</h1>
+      <p class="sub">4けたのパスワードを入力してください。</p>
+      <input class="code-input" id="teacher-pw" type="password" inputmode="numeric" maxlength="10" autocomplete="off">
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button class="btn gray" id="btn-teacher-back">もどる</button>
+        <button class="btn" id="btn-teacher-login" style="flex:1;">ログイン</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 教員ダッシュボード ============ -->
+<section class="screen" id="screen-teacher">
+  <div class="topbar">
+    <div class="who">👩‍🏫 教員ダッシュボード</div>
+    <button class="btn ghost small" id="btn-teacher-logout">ログアウト</button>
+  </div>
+  <div class="card">
     <div class="tabs">
-      <button class="tab-btn active" data-mode="1">① 小数点移動</button>
-      <button class="tab-btn" data-mode="2">② 単位変換</button>
-      <button class="tab-btn" data-mode="3">③ 数直線</button>
-      <button class="tab-btn" data-mode="4">④ 筆算</button>
+      <button class="tab-btn active" data-tab="progress">ミッション進捗一覧</button>
+      <button class="tab-btn" data-tab="journal">振り返り一覧・コメント</button>
+      <button class="tab-btn" data-tab="year">年度設定</button>
     </div>
-    <div class="content" id="content"></div>
+
+    <div id="t-tab-progress">
+      <div style="margin-bottom:12px;">
+        表示する年度：<select class="select" id="t-progress-year"></select>
+      </div>
+      <div class="scroll-x" id="t-progress-table"></div>
+      <p class="sub">行をクリックすると、その児童の入力内容をくわしく確認できます。</p>
+    </div>
+
+    <div id="t-tab-journal" style="display:none;">
+      <div style="margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+        <span>表示する年度：<select class="select" id="t-journal-year"></select></span>
+        <span>時間目：<select class="select" id="t-journal-hour"></select></span>
+      </div>
+      <div class="scroll-x" id="t-journal-table"></div>
+    </div>
+
+    <div id="t-tab-year" style="display:none;">
+      <h2 class="h2">現在の年度：<span id="t-current-year"></span></h2>
+      <p class="sub">年度を変更すると、以後にログインする児童はすべて新しい年度として登録されます。<br>
+      過去の年度のデータは削除されず、進捗一覧・振り返り一覧の年度プルダウンから引き続き閲覧できます。</p>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <input type="number" id="t-year-input" class="select" style="width:130px;" min="2000" max="2100">
+        <button class="btn" id="btn-set-year">この年度に変更する</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 教員：児童詳細モーダル ============ -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h2 class="h2" id="detail-title" style="margin:0;"></h2>
+      <button class="btn gray small" id="btn-detail-close">閉じる</button>
+    </div>
+    <div style="margin:10px 0 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span class="sub">氏名の修正：</span>
+      <input type="text" id="detail-name-input" class="select" maxlength="20" style="width:180px;">
+      <button class="btn small" id="btn-detail-name-save">氏名を保存</button>
+    </div>
+    <div id="detail-body"></div>
   </div>
 </div>
 
-<div class="numpad-overlay" id="numpadOverlay">
-  <div class="numpad" id="numpad"></div>
-</div>
-
-<div class="modal-overlay" id="summaryOverlay">
-  <div class="modal" id="summaryModal"></div>
-</div>
+<div id="toast"></div>
+<div id="save-chip"></div>
+<div id="loading"><div class="spinner"></div></div>
 
 <script>
-/* ===================== データ生成 ===================== */
+/* ============================================================
+ * 共通ユーティリティ
+ * ============================================================ */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function run(fn){
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function(resolve, reject){
+    var runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject);
+    runner[fn].apply(runner, args);
+  });
+}
+var toastTimer = null;
+function toast(msg){
+  var el = $('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.style.display = 'none'; }, 4000);
+}
+function loading(show){ $('loading').classList.toggle('show', !!show); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  $(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+var chipTimer = null;
+function saveChip(stateName){
+  var el = $('save-chip');
+  el.className = stateName;
+  clearTimeout(chipTimer);
+  if(stateName === 'saving'){ el.textContent = '保存中…'; }
+  else if(stateName === 'saved'){
+    el.textContent = '✔ 保存しました';
+    chipTimer = setTimeout(function(){ el.className=''; el.style.display='none'; }, 2500);
+  }
+  else if(stateName === 'error'){ el.textContent = '⚠ 保存できませんでした'; }
+  if(stateName){ el.style.display = 'block'; }
+}
 
-function buildMode1(){
-  const ops = ['×10','×100','×1000','÷10','÷100','÷1000'];
-  const bases = {
-    '×10':   [0.074,0.236,1.508,0.9,2.05,3.1,0.003,0.46,7.2,0.018],
-    '×100':  [0.074,0.0236,1.508,0.009,0.052,3.1,0.0083,0.046,7.2,0.0018],
-    '×1000': [0.074,0.00236,0.0015,0.009,0.0052,0.31,0.00083,0.0046,0.72,0.00018],
-    '÷10':   [74,236,1508,9,205,3.1,3,46,72,18],
-    '÷100':  [74,236,1508,9,520,310,830,460,7200,180],
-    '÷1000': [740,2360,15080,9000,5200,3100,8300,4600,72000,1800]
-  };
-  let id=1; const list=[];
-  ops.forEach(op=>{
-    for(let i=0;i<5;i++){
-      const orig = bases[op][i];
-      let answer;
-      if(op[0]==='×') answer = orig*parseInt(op.slice(1));
-      else answer = orig/parseInt(op.slice(1));
-      answer = Math.round(answer*1000000)/1000000;
-      const moveCount = op.includes('1000')?3:op.includes('100')?2:1;
-      const dir = op[0]==='×'?'右':'左';
-      list.push({
-        id:id++, original:orig, operation:op, answer:answer,
-        hint:`${op}すると、小数点が${dir}に${moveCount}つ動くよ。`,
-        type:op
+/* 保存のデバウンス管理（画面を離れるときは flushSaves で即保存） */
+var saveTimers = {};
+function debounceSave(key, fn, delay){
+  if(saveTimers[key]){ clearTimeout(saveTimers[key].timer); }
+  saveTimers[key] = { fn: fn, timer: setTimeout(function(){
+    delete saveTimers[key];
+    fn();
+  }, delay || 2500) };
+}
+function flushSaves(){
+  Object.keys(saveTimers).forEach(function(key){
+    clearTimeout(saveTimers[key].timer);
+    var fn = saveTimers[key].fn;
+    delete saveTimers[key];
+    fn();
+  });
+}
+
+/* ============================================================
+ * 児童の状態
+ * ============================================================ */
+var state = null;
+function defaultM(n){
+  switch(n){
+    case 1: return { image:'', theme:'', audience:'', purpose:'' };
+    case 2: return { cards:[] };
+    case 3: return { format:'', formatKey:'', pageCount:0, pages:[] };
+    case 4: return { texts:{}, photoNotes:{} };
+    case 5: return { reflection:'' };
+  }
+}
+function newState(){
+  return { code:null, name:null, year:null,
+    m:{1:defaultM(1),2:defaultM(2),3:defaultM(3),4:defaultM(4),5:defaultM(5)},
+    done:{1:false,2:false,3:false,4:false,5:false},
+    journals:{} };
+}
+
+/* ============================================================
+ * ミッション定義
+ * ============================================================ */
+var MISSIONS = {
+  1: { title:'見通しをもって、テーマを決めよう', sub:'どんなパンフレットを、だれに、何のために作る？' },
+  2: { title:'情報を集めよう', sub:'伝えたい情報を「情報カード」に書きためよう（3枚以上）' },
+  3: { title:'構成・レイアウトを考えよう', sub:'紙の折り方を選んで、各面の割り付けを決めよう' },
+  4: { title:'原稿を書こう', sub:'レイアウトの文章ブロックに入れる本文を書こう' },
+  5: { title:'仕上げ・振り返り', sub:'原稿をまとめてコピーし、学習を振り返ろう' }
+};
+
+var FORMATS = {
+  futatsuori: { label:'二つ折り', desc:'紙を半分に折る形。4つの面ができるよ。', faces:4 },
+  mitsuori:   { label:'三つ折り', desc:'紙を3つに折る形。6つの面ができるよ。', faces:6 },
+  kannon:     { label:'観音開き', desc:'両側からとびらのように開く形。6面か8面。', faces:[6,8] },
+  mihiraki:   { label:'見開き型（冊子）', desc:'ページをめくる冊子の形。ページ数は自分で決める（3〜6）。', custom:true, min:3, max:6 }
+};
+
+var TEMPLATES = {
+  photo_left_text_right: { name:'写真＋文章（左右）', blocks:[
+    { type:'photo', label:'写真', x:5, y:5, w:42, h:90 },
+    { type:'text', label:'文章', x:53, y:5, w:42, h:90 } ] },
+  photo_top_text_bottom: { name:'写真＋文章（上下）', blocks:[
+    { type:'photo', label:'写真', x:5, y:5, w:90, h:42 },
+    { type:'text', label:'文章', x:5, y:53, w:90, h:42 } ] },
+  text_only: { name:'文章のみ（全面）', blocks:[
+    { type:'text', label:'文章', x:5, y:5, w:90, h:90 } ] },
+  headline_photo_catch: { name:'見出し＋大きな写真＋キャッチコピー', blocks:[
+    { type:'text', label:'見出し', x:5, y:5, w:90, h:13 },
+    { type:'photo', label:'写真', x:5, y:22, w:90, h:53 },
+    { type:'text', label:'キャッチコピー', x:5, y:80, w:90, h:15 } ] },
+  two_photos_text: { name:'写真2枚＋文章', blocks:[
+    { type:'photo', label:'写真1', x:5, y:5, w:42, h:40 },
+    { type:'photo', label:'写真2', x:53, y:5, w:42, h:40 },
+    { type:'text', label:'文章', x:5, y:50, w:90, h:45 } ] }
+};
+
+/* ============================================================
+ * 完了判定
+ * ============================================================ */
+function checkDone(n){
+  var m = state.m[n];
+  switch(n){
+    case 1:
+      return !!(m.image.trim() && m.theme.trim() && m.audience.trim() && m.purpose.trim());
+    case 2:
+      return m.cards.length >= 3 && m.cards.every(function(c){
+        return c.info.trim() && c.source.trim();
       });
-    }
-  });
-  return list;
-}
-
-function buildMode2(){
-  const list=[];
-  let id=1;
-  const kmM = [[1,325],[2,15],[3,5],[1,80],[4,250],[2,3],[1,907],[3,40],[2,650],[1,8]];
-  const mOnly = [2015,3470,1050,8200,4005,1230,2980,5500,1009,6750];
-  const kgG = [[3,284],[1,500],[2,75],[5,9],[1,830],[4,60],[2,205],[1,40],[3,750],[2,8]];
-  const gOnly = [927,1500,350,4200,80,615,990,1075,250,3400];
-  kmM.forEach(([km,m])=>{
-    list.push({id:id++, display:`${km}km${m}m`, targetUnit:'km', digits:String(km*1000+m).padStart(4,'0').split('').map(Number),
-      pochiIndex:1, answer:Number((km+m/1000).toFixed(3)), unitType:'length',
-      hint:'kmで表したいから、kmのポチを点灯！'});
-  });
-  mOnly.forEach(m=>{
-    list.push({id:id++, display:`${m}m`, targetUnit:'km', digits:String(m).padStart(4,'0').split('').map(Number),
-      pochiIndex:1, answer:Number((m/1000).toFixed(3)), unitType:'length',
-      hint:'mをkmで表したいから、kmのポチを点灯！'});
-  });
-  kgG.forEach(([kg,g])=>{
-    list.push({id:id++, display:`${kg}kg${g}g`, targetUnit:'kg', digits:String(kg*1000+g).padStart(4,'0').split('').map(Number),
-      pochiIndex:1, answer:Number((kg+g/1000).toFixed(3)), unitType:'weight',
-      hint:'kgで表したいから、kgのポチを点灯！'});
-  });
-  gOnly.forEach(g=>{
-    list.push({id:id++, display:`${g}g`, targetUnit:'kg', digits:String(g).padStart(4,'0').split('').map(Number),
-      pochiIndex:1, answer:Number((g/1000).toFixed(3)), unitType:'weight',
-      hint:'gをkgで表したいから、kgのポチを点灯！'});
-  });
-  const kmRev = [2.015,1.325,3.5,1.08,4.25,2.003,1.907,3.04,2.65,1.008];
-  kmRev.forEach(km=>{
-    const m = Math.round(km*1000);
-    list.push({id:id++, display:`${km}km`, targetUnit:'m', digits:String(m).padStart(4,'0').split('').map(Number),
-      pochiIndex:2, answer:m, unitType:'length',
-      hint:'mで表したいから、mのポチを点灯！'});
-  });
-  const kgRev = [3.284,1.5,2.075,5.009,1.83,4.06,2.205,1.04,3.75,2.008];
-  kgRev.forEach(kg=>{
-    const g = Math.round(kg*1000);
-    list.push({id:id++, display:`${kg}kg`, targetUnit:'g', digits:String(g).padStart(4,'0').split('').map(Number),
-      pochiIndex:2, answer:g, unitType:'weight',
-      hint:'gで表したいから、gのポチを点灯！'});
-  });
-  return list;
-}
-
-function buildMode3(){
-  const list=[]; let id=1;
-  // A: 目盛り読み取り (15)
-  const readRanges = [
-    {min:0,max:0.1,step:0.001,marks:{ア:0.008,イ:0.035,ウ:0.062,エ:0.091}},
-    {min:0,max:0.9,step:0.01,marks:{ア:0.12,イ:0.34,ウ:0.58,エ:0.76}},
-    {min:1,max:2,step:0.01,marks:{ア:1.08,イ:1.25,ウ:1.55,エ:1.83}},
-    {min:1,max:1.8,step:0.001,marks:{ア:1.43,イ:1.435,ウ:1.46,エ:1.79}},
-    {min:4.29,max:4.31,step:0.001,marks:{ア:4.293,イ:4.30,ウ:4.305,エ:4.31}}
-  ];
-  readRanges.forEach(r=>{
-    Object.entries(r.marks).forEach(([label,val])=>{
-      list.push({id:id++, kind:'read', min:r.min, max:r.max, step:r.step, marks:r.marks,
-        targetLabel:label, answer:Number(val.toFixed(3)),
-        hint:`1めもりの大きさは${r.step}だよ。${label}が0の目盛りからいくつ分かを数えよう。`});
-    });
-  });
-  // B: 矢印を立てる (15)
-  const placeRanges = [
-    {min:0,max:0.1,step:0.001,vals:[0.008,0.01,0.006,0.02,0.095]},
-    {min:0,max:1,step:0.01,vals:[0.55,1.08,0.34,0.7,0.91]},
-    {min:0,max:2,step:0.01,vals:[1.25,0.65,1.9,0.05,1.5]}
-  ];
-  let cnt=0;
-  placeRanges.forEach(r=>{
-    r.vals.forEach(v=>{
-      cnt++;
-      list.push({id:id++, kind:'place', min:r.min, max:r.max, step:r.step,
-        target:v, answer:v, hint:`${v}は0から${Math.round(v/r.step)}めもり分の場所だよ。`});
-    });
-  });
-  return list;
-}
-
-function buildMode4(){
-  const list=[]; let id=1;
-  const addSame=[[2.38,4.56],[1.27,3.45],[5.62,2.19],[0.83,0.46],[3.14,1.59]];
-  const addDiff=[[3.6,0.835],[2.4,1.06],[5.2,0.345],[1.08,2.3],[4.05,0.6]];
-  const addInt=[[6,0.42],[3,1.275],[5,0.8],[2,3.65],[7,0.09]];
-  const subSame=[[6.85,5.96],[4.73,2.18],[8.91,3.47],[5.5,2.5],[7.62,4.38]];
-  const subDiff=[[5.76,3.2],[6.4,1.85],[3.5,0.62],[8.2,5.075],[4.6,0.38]];
-  const subZero=[[3.03,0.83],[2.0,0.45],[5.07,2.4],[1.005,0.7],[6.0,3.125]];
-  function pushAdd(arr){arr.forEach(([a,b])=>{list.push({id:id++,op:'+',a,b,answer:Math.round((a+b)*1000)/1000});});}
-  function pushSub(arr){arr.forEach(([a,b])=>{list.push({id:id++,op:'-',a,b,answer:Math.round((a-b)*1000)/1000});});}
-  pushAdd(addSame); pushAdd(addDiff); pushAdd(addInt);
-  pushSub(subSame); pushSub(subDiff); pushSub(subZero);
-  return list;
-}
-
-const QUESTIONS = { 1:buildMode1(), 2:buildMode2(), 3:buildMode3(), 4:buildMode4() };
-
-/* ===================== 進捗管理 ===================== */
-function defaultProgress(){
-  return {
-    1:{total:30,correct:0,wrong:[],current:0,wrongStreak:{}},
-    2:{total:30,correct:0,wrong:[],current:0,wrongStreak:{}},
-    3:{total:30,correct:0,wrong:[],current:0,wrongStreak:{}},
-    4:{total:30,correct:0,wrong:[],current:0,wrongStreak:{}}
-  };
-}
-let progress = JSON.parse(sessionStorage.getItem('progress')||'null') || defaultProgress();
-function saveProgress(){ sessionStorage.setItem('progress', JSON.stringify(progress)); }
-
-let currentMode = 1;
-let randomQueue = null; // {mode,q} list when in random mode
-let randomPos = 0;
-let activeQuestionOverride = null; // for retry-wrong mode
-
-const content = document.getElementById('content');
-const numpadOverlay = document.getElementById('numpadOverlay');
-const numpad = document.getElementById('numpad');
-const summaryOverlay = document.getElementById('summaryOverlay');
-const summaryModal = document.getElementById('summaryModal');
-
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentMode = parseInt(btn.dataset.mode);
-    randomQueue = null; activeQuestionOverride=null;
-    renderProgress();
-    renderQuestion();
-  });
-});
-document.getElementById('randomBtn').addEventListener('click', startRandomMode);
-
-function modeName(m){ return {1:'① 小数点移動',2:'② 単位変換',3:'③ 数直線',4:'④ 筆算'}[m]; }
-
-function renderProgress(){
-  const p = progress[currentMode];
-  document.getElementById('progressLabel').textContent =
-    `${modeName(currentMode)}　${p.correct} / ${p.total} もんせいかい ✓`;
-  document.getElementById('progressFill').style.width = (p.correct/p.total*100)+'%';
-}
-
-function getCurrentQuestion(){
-  if(activeQuestionOverride) return activeQuestionOverride;
-  if(randomQueue){
-    if(randomPos>=randomQueue.length) return null;
-    return randomQueue[randomPos];
+    case 3:
+      return !!(m.format && m.pages.length > 0 && m.pages.every(function(p){ return !!p.template; }));
+    case 4:
+      if(!checkDone(3)) return false;
+      var keys = textBlockKeys();
+      return keys.length > 0 && keys.every(function(k){
+        return (state.m[4].texts[k] || '').trim() !== '';
+      });
+    case 5:
+      return m.reflection.trim() !== '';
   }
-  const p = progress[currentMode];
-  if(p.current>=QUESTIONS[currentMode].length) return null;
-  return {mode:currentMode, q:QUESTIONS[currentMode][p.current]};
+  return false;
 }
-
-function advanceQuestion(){
-  if(activeQuestionOverride){ activeQuestionOverride=null; renderQuestion(); return; }
-  if(randomQueue){ randomPos++; renderQuestion(); return; }
-  progress[currentMode].current++;
-  saveProgress();
-  renderQuestion();
+function doneHint(n){
+  var m = state.m[n];
+  switch(n){
+    case 1:
+      var left = ['image','theme','audience','purpose'].filter(function(k){ return !m[k].trim(); }).length;
+      return left === 0 ? '' : 'あと ' + left + ' つの質問に答えると完了！';
+    case 2:
+      var filled = m.cards.filter(function(c){ return c.info.trim() && c.source.trim(); }).length;
+      return filled >= 3 && filled === m.cards.length ? '' : 'カードを3枚以上つくって、すべてうめると完了（今 ' + filled + ' 枚）';
+    case 3:
+      if(!m.format) return '紙の形式を選ぶと、面ごとのレイアウトが選べるよ';
+      var left3 = m.pages.filter(function(p){ return !p.template; }).length;
+      return left3 === 0 ? '' : 'あと ' + left3 + ' 面のレイアウトを選ぶと完了！';
+    case 4:
+      if(!checkDone(3)) return '先にミッション3のレイアウトを完成させよう';
+      var keys = textBlockKeys();
+      var left4 = keys.filter(function(k){ return !(state.m[4].texts[k]||'').trim(); }).length;
+      return left4 === 0 ? '' : 'あと ' + left4 + ' この文章ブロックに本文を書くと完了！';
+    case 5:
+      return m.reflection.trim() ? '' : '振り返りを書くと完了！';
+  }
+  return '';
 }
-
-function markResult(mode, qid, ok){
-  const p = progress[mode];
-  if(ok){
-    p.correct++;
-    p.wrong = p.wrong.filter(x=>x!==qid);
+function updateMissionStatus(n){
+  var el = $('mission-status');
+  if(checkDone(n)){
+    el.innerHTML = '<span class="badge done">✔ このミッションは完了！（あとから直してもOK）</span>';
   } else {
-    p.wrongStreak[qid] = (p.wrongStreak[qid]||0)+1;
-    if(!p.wrong.includes(qid)) p.wrong.push(qid);
+    var hint = doneHint(n);
+    el.innerHTML = hint ? '<span class="badge doing">' + esc(hint) + '</span>' : '';
   }
-  saveProgress();
 }
 
-function startRandomMode(){
-  let pool = [];
-  [1,2,3,4].forEach(m=>{
-    QUESTIONS[m].forEach(q=>pool.push({mode:m,q}));
-  });
-  for(let i=pool.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [pool[i],pool[j]]=[pool[j],pool[i]];
-  }
-  randomQueue = pool; randomPos=0;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('progressLabel').textContent = 'ランダムもんだい';
-  document.getElementById('progressFill').style.width = '0%';
-  renderQuestion();
+/* ============================================================
+ * 保存
+ * ============================================================ */
+function scheduleMissionSave(n){
+  updateMissionStatus(n);
+  debounceSave('m' + n, function(){ doMissionSave(n); });
+}
+function doMissionSave(n){
+  if(!state || !state.code) return;
+  var done = checkDone(n);
+  state.done[n] = done;
+  saveChip('saving');
+  run('apiSaveMission', state.code, n, JSON.stringify(state.m[n]), done)
+    .then(function(){ saveChip('saved'); })
+    .catch(function(err){
+      saveChip('error');
+      toast('保存できませんでした。通信をたしかめて、もう一度入力してみてね。');
+    });
 }
 
-function retryWrong(mode){
-  const wrongIds = progress[mode].wrong;
-  if(wrongIds.length===0){ renderQuestion(); return; }
-  const qs = QUESTIONS[mode].filter(q=>wrongIds.includes(q.id));
-  randomQueue = qs.map(q=>({mode,q}));
-  randomPos = 0;
-  renderQuestion();
-}
+/* ============================================================
+ * ログインフロー
+ * ============================================================ */
+var pendingCode = null;
 
-/* ===================== レンダリング ルーター ===================== */
-function renderQuestion(){
-  const cur = getCurrentQuestion();
-  if(!cur){
-    renderSummary(currentMode);
+$('btn-login').addEventListener('click', doLogin);
+$('code-input').addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+$('code-input').addEventListener('input', function(){
+  this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+});
+
+function doLogin(){
+  var code = $('code-input').value.trim();
+  if(!/^[1-9][0-9]{3}$/.test(code)){
+    toast('コードは4けたの数字で入れてね（れい：6103）');
     return;
   }
-  const mode = cur.mode!==undefined ? cur.mode : currentMode;
-  const q = cur.q;
-  if(mode===1) renderMode1(q, mode);
-  else if(mode===2) renderMode2(q, mode);
-  else if(mode===3) renderMode3(q, mode);
-  else if(mode===4) renderMode4(q, mode);
-}
-renderProgress();
-renderQuestion();
-
-function qBoxOpen(mode, q, idx, total, text){
-  return `<div class="problem-box">
-    <span class="q-badge">${idx}</span><span class="q-text">${text}</span>
-    <div style="margin-top:8px;"><button class="hint-btn" id="hintBtn">💡 ヒントを見る</button></div>
-    <div class="hint-box" id="hintBox">${q.hint||''}</div>
-  </div>`;
-}
-function attachHint(){
-  const hb = document.getElementById('hintBtn');
-  const box = document.getElementById('hintBox');
-  if(hb) hb.addEventListener('click',()=>box.classList.toggle('show'));
-}
-function feedbackEl(){ return `<div class="feedback" id="feedback"></div>`; }
-
-function showFeedback(ok, correctAnswerText){
-  const fb = document.getElementById('feedback');
-  if(ok){
-    fb.className='feedback correct pop-in';
-    fb.textContent='〇 せいかい！';
-    setTimeout(advanceQuestion, 900);
-  } else {
-    fb.className='feedback wrong pop-in';
-    fb.textContent = '✗ もういちど';
-  }
-}
-
-function wrongStreakOf(mode,qid){ return progress[mode].wrongStreak[qid]||0; }
-
-/* ===================== モード①：小数点移動 ===================== */
-function renderMode1(q, mode){
-  const idx = (progress[mode].current%QUESTIONS[1].length)+1;
-  content.innerHTML = `
-    ${qBoxOpen(mode,q,idx,30,`${q.original} を ${q.operation} した数はいくつですか。`)}
-    <div class="place-table" id="placeTable"></div>
-    <div class="controls">
-      <input type="number" step="any" id="ansInput" placeholder="こたえ">
-      <button class="btn" id="checkBtn">こたえる</button>
-    </div>
-    ${feedbackEl()}
-  `;
-  attachHint();
-  drawPlaceTable(q.original);
-  document.getElementById('checkBtn').addEventListener('click', ()=>{
-    const v = parseFloat(document.getElementById('ansInput').value);
-    const ok = Math.abs(v - q.answer) < 1e-9;
-    markResult(mode, q.id, ok);
-    showFeedback(ok);
-    if(ok){
-      animateSlide(q.operation);
-      const fb = document.getElementById('feedback');
-      const dir = q.operation[0]==='×'?'右':'左';
-      const cnt = q.operation.includes('1000')?3:q.operation.includes('100')?2:1;
-      fb.innerHTML += `<div style="font-size:0.9rem;color:#555;margin-top:4px;">ポチが${cnt}つ${dir}に動いた！</div>`;
-    } else if(wrongStreakOf(mode,q.id)>=3){
-      document.getElementById('feedback').innerHTML += `<div style="font-size:0.9rem;">正解は <b>${q.answer}</b> だよ。${q.hint}</div>`;
+  pendingCode = code;
+  loading(true);
+  run('apiLogin', code).then(function(res){
+    loading(false);
+    if(res.registered){
+      $('confirm-name').textContent = res.name;
+      showScreen('screen-confirm');
+    } else {
+      $('name-code-disp').textContent = code;
+      $('name-input').value = '';
+      showScreen('screen-name');
     }
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '通信エラーです。もう一度ためしてね。');
   });
-}
-function digitsOfPlace(num){
-  // returns {hundreds,tens,ones,d1,d2,d3}
-  const fixed = Math.abs(num).toFixed(3);
-  const [intPart, decPart] = fixed.split('.');
-  const ip = intPart.padStart(3,'0');
-  return [ip[0],ip[1],ip[2],decPart[0],decPart[1],decPart[2]];
-}
-function drawPlaceTable(num){
-  const labels = ['百','十','一','．1','．2','．3'];
-  const d = digitsOfPlace(num);
-  let html='';
-  for(let i=0;i<6;i++){
-    if(i===3) html += `<div class="pcell point">．</div>`;
-    const cls = i<3?'intpart':'decpart';
-    html += `<div class="pcell ${cls}" data-i="${i}"><span>${d[i]}</span><span class="lbl">${labels[i]}</span></div>`;
-  }
-  document.getElementById('placeTable').innerHTML = html;
-}
-function animateSlide(op){
-  const cells = document.querySelectorAll('#placeTable .pcell:not(.point)');
-  const dir = op[0]==='×' ? 'slide-left' : 'slide-right';
-  cells.forEach(c=>c.classList.add(dir));
 }
 
-/* ===================== モード②：単位変換（ポチ） ===================== */
-function renderMode2(q, mode){
-  const idx = (progress[mode].current%QUESTIONS[2].length)+1;
-  const isLength = q.unitType==='length';
-  const units = isLength ? ['t','km','m'] : ['t','kg','g'];
-  content.innerHTML = `
-    ${qBoxOpen(mode,q,idx,30,`${q.display} を ${q.targetUnit}単位で表しましょう。どのポチを点灯させる？`)}
-    <div style="overflow-x:auto;"><svg id="axisSvg" width="600" height="160" viewBox="0 0 600 160"></svg></div>
-    <div class="controls" id="confirmRow" style="display:none;">
-      <input type="number" step="any" id="ansInput" placeholder="こたえ">
-      <button class="btn" id="checkBtn">こたえる</button>
-    </div>
-    ${feedbackEl()}
-  `;
-  attachHint();
-  drawAxis(q, units);
-}
-function drawAxis(q, units){
-  const svg = document.getElementById('axisSvg');
-  const xs = {0:80, 1:300, 2:520};
-  let html = `<line x1="20" y1="80" x2="580" y2="80" stroke="#3DAA6E" stroke-width="3"/>`;
-  units.forEach((u,i)=>{
-    html += `<line x1="${xs[i]}" y1="60" x2="${xs[i]}" y2="100" stroke="#3DAA6E" stroke-width="3"/>`;
-    html += `<text x="${xs[i]}" y="120" text-anchor="middle" font-size="16" fill="#333">${u}</text>`;
-    html += `<circle class="pochi" id="pochi${i}" cx="${xs[i]}" cy="80" r="12" fill="#fff" stroke="#333" stroke-width="2"/>`;
+$('btn-name-back').addEventListener('click', function(){ showScreen('screen-login'); });
+$('btn-name-ok').addEventListener('click', function(){
+  var name = $('name-input').value.trim();
+  if(!name){ toast('名前を入れてね。'); return; }
+  loading(true);
+  run('apiRegister', pendingCode, name).then(function(res){
+    return enterApp(pendingCode);
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '登録できませんでした。もう一度ためしてね。');
   });
-  q.digits.forEach((d,i)=>{
-    html += `<text class="digit-col" x="${xs[Math.min(i,2)] + (i===2?0:0)}" y="30" text-anchor="middle"></text>`;
-  });
-  // place digits aligned: digit groups correspond to thousand/hundred/ten/one -> map roughly to axis spacing
-  const digitXs = [220,300,380,460];
-  q.digits.forEach((d,i)=>{
-    html += `<text class="digit-col" x="${digitXs[i]}" y="35" text-anchor="middle">${d}</text>`;
-  });
-  svg.innerHTML = html;
-  units.forEach((u,i)=>{
-    const circ = document.getElementById('pochi'+i);
-    circ.addEventListener('click', ()=>selectPochi(i, q));
-    circ.addEventListener('touchstart', (e)=>{e.preventDefault(); selectPochi(i,q);});
-  });
-}
-function selectPochi(i, q){
-  const mode=2;
-  for(let k=0;k<3;k++){
-    const c = document.getElementById('pochi'+k);
-    if(k===i) c.setAttribute('fill', i===q.pochiIndex ? '#3DAA6E' : '#D94F4F');
-    else c.setAttribute('fill', '#fff');
-  }
-  const ok = i===q.pochiIndex;
-  markResult(mode, q.id, ok);
-  if(ok){
-    document.getElementById('confirmRow').style.display='flex';
-    const fb = document.getElementById('feedback');
-    fb.className='feedback correct pop-in';
-    fb.textContent = `〇 せいかい！ ${q.answer}${q.targetUnit}`;
-    document.getElementById('checkBtn').addEventListener('click', ()=>{
-      const v = parseFloat(document.getElementById('ansInput').value);
-      const ok2 = Math.abs(v-q.answer)<1e-9;
-      const fb2=document.getElementById('feedback');
-      if(ok2){ fb2.textContent='〇 かんぺき！'; setTimeout(advanceQuestion,800); }
-      else { fb2.textContent = `もう一度。正解は ${q.answer}${q.targetUnit}`; }
-    });
-  } else {
-    const fb = document.getElementById('feedback');
-    fb.className='feedback wrong pop-in';
-    fb.textContent='✗ もういちど';
-    if(wrongStreakOf(mode,q.id)>=3){
-      fb.innerHTML += `<div style="font-size:0.9rem;">${q.hint}</div>`;
-    }
-  }
-}
+});
 
-/* ===================== モード③：数直線 ===================== */
-function renderMode3(q, mode){
-  const idx = (progress[mode].current%QUESTIONS[3].length)+1;
-  const text = q.kind==='read'
-    ? `${q.targetLabel} の目盛りは何ですか。`
-    : `${q.target} を表すめもりに ↑ を立てましょう。`;
-  content.innerHTML = `
-    ${qBoxOpen(mode,q,idx,30,text)}
-    <div style="overflow-x:auto;"><svg id="lineSvg" width="700" height="160" viewBox="0 0 700 160"></svg></div>
-    <div class="controls" id="readRow" style="display:${q.kind==='read'?'flex':'none'};">
-      <input type="number" step="any" id="ansInput" placeholder="こたえ">
-      <button class="btn" id="checkBtn">こたえる</button>
-    </div>
-    ${feedbackEl()}
-  `;
-  attachHint();
-  drawNumberLine(q);
-  if(q.kind==='read'){
-    document.getElementById('checkBtn').addEventListener('click', ()=>{
-      const v = parseFloat(document.getElementById('ansInput').value);
-      const ok = Math.abs(v-q.answer) < q.step/2 + 1e-9;
-      markResult(mode,q.id,ok);
-      showFeedback(ok);
-      if(!ok && wrongStreakOf(mode,q.id)>=3){
-        document.getElementById('feedback').innerHTML += `<div style="font-size:0.9rem;">正解は <b>${q.answer}</b>。${q.hint}</div>`;
+$('btn-confirm-no').addEventListener('click', function(){
+  pendingCode = null;
+  $('code-input').value = '';
+  showScreen('screen-login');
+});
+$('btn-confirm-yes').addEventListener('click', function(){
+  loading(true);
+  enterApp(pendingCode).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '読みこめませんでした。もう一度ためしてね。');
+  });
+});
+
+function enterApp(code){
+  return run('apiLoadStudent', code).then(function(res){
+    state = newState();
+    state.code = code;
+    state.name = res.name;
+    state.year = res.year;
+    for(var i = 1; i <= 5; i++){
+      var mi = res.missions[i] || res.missions[String(i)];
+      if(mi && mi.data){
+        try {
+          var parsed = JSON.parse(mi.data);
+          state.m[i] = Object.assign(defaultM(i), parsed);
+        } catch(e){ state.m[i] = defaultM(i); }
       }
-    });
-  }
+      state.done[i] = !!(mi && mi.done);
+    }
+    (res.journals || []).forEach(function(j){ state.journals[j.hour] = j; });
+    loading(false);
+    renderMap();
+    showScreen('screen-map');
+  });
 }
-let placedArrowValue = null;
-function drawNumberLine(q){
-  const svg = document.getElementById('lineSvg');
-  const W=700,H=160,axisY=70,leftPad=60,rightPad=60;
-  const usableW = W-leftPad-rightPad;
-  const toX = v => leftPad + (v-q.min)/(q.max-q.min)*usableW;
-  let html = `<line x1="${leftPad}" y1="${axisY}" x2="${W-rightPad}" y2="${axisY}" stroke="#333" stroke-width="2"/>`;
-  const bigStep = (q.max-q.min)/10;
-  for(let i=0;i<=10;i++){
-    const v = q.min + bigStep*i;
-    const x = toX(v);
-    html += `<line x1="${x}" y1="${axisY-16}" x2="${x}" y2="${axisY+16}" stroke="#333" stroke-width="2"/>`;
-    html += `<text x="${x}" y="${axisY+34}" text-anchor="middle" font-size="13">${Number(v.toFixed(4))}</text>`;
+
+$('btn-logout').addEventListener('click', function(){
+  flushSaves();
+  state = null;
+  pendingCode = null;
+  $('code-input').value = '';
+  showScreen('screen-login');
+});
+
+/* ============================================================
+ * ミッションマップ
+ * ============================================================ */
+function hasData(n){
+  var m = state.m[n];
+  switch(n){
+    case 1: return !!(m.image || m.theme || m.audience || m.purpose);
+    case 2: return m.cards.length > 0;
+    case 3: return !!m.format;
+    case 4: return Object.keys(m.texts).some(function(k){ return m.texts[k]; });
+    case 5: return !!m.reflection;
   }
-  if(q.kind==='read'){
-    Object.entries(q.marks).forEach(([label,val])=>{
-      const x = toX(val);
-      html += `<polygon points="${x-7},${axisY-26} ${x+7},${axisY-26} ${x},${axisY-12}" fill="#3DAA6E"/>`;
-      html += `<text x="${x}" y="${axisY-32}" text-anchor="middle" font-size="14" font-weight="700">${label}</text>`;
+  return false;
+}
+function isUnlocked(n){ return n === 1 || state.done[n - 1]; }
+
+function renderMap(){
+  $('map-who').textContent = '👤 ' + state.name + ' さん（' + state.year + '年度）';
+  var html = '';
+  for(var n = 1; n <= 5; n++){
+    var unlocked = isUnlocked(n);
+    var badge, cls = '';
+    if(state.done[n]){ badge = '<span class="badge done">✔ 完了</span>'; cls = 'is-done'; }
+    else if(!unlocked){ badge = '<span class="badge locked">🔒 まだ</span>'; }
+    else if(hasData(n)){ badge = '<span class="badge doing">挑戦中</span>'; }
+    else { badge = '<span class="badge open">できるよ</span>'; }
+    html += '<button class="mission-card ' + cls + '" data-n="' + n + '"' + (unlocked ? '' : ' disabled') + '>'
+      + '<span class="mission-num">' + (state.done[n] ? '✔' : n) + '</span>'
+      + '<span><span class="m-title">ミッション' + n + '：' + esc(MISSIONS[n].title) + '</span><br>'
+      + '<span class="m-sub">' + esc(MISSIONS[n].sub) + '</span></span>'
+      + '<span class="m-state">' + badge + '</span></button>';
+  }
+  $('mission-list').innerHTML = html;
+  document.querySelectorAll('#mission-list .mission-card').forEach(function(btn){
+    btn.addEventListener('click', function(){ openMission(Number(btn.dataset.n)); });
+  });
+}
+
+$('btn-journal').addEventListener('click', function(){ openJournal(); });
+$('btn-mission-back').addEventListener('click', function(){
+  flushSaves();
+  renderMap();
+  showScreen('screen-map');
+});
+$('btn-journal-back').addEventListener('click', function(){
+  flushSaves();
+  renderMap();
+  showScreen('screen-map');
+});
+
+/* ============================================================
+ * ミッション画面（共通）
+ * ============================================================ */
+var currentMission = 0;
+function openMission(n){
+  currentMission = n;
+  $('mission-who').textContent = '👤 ' + state.name + ' さん';
+  $('mission-label').textContent = 'ミッション' + n;
+  $('mission-title').textContent = MISSIONS[n].title;
+  updateMissionStatus(n);
+  var body = $('mission-body');
+  body.innerHTML = '';
+  if(n === 1) renderM1(body);
+  else if(n === 2) renderM2(body);
+  else if(n === 3) renderM3(body);
+  else if(n === 4) renderM4(body);
+  else if(n === 5) renderM5(body);
+  showScreen('screen-mission');
+}
+
+/* ---------- ミッション1 ---------- */
+function renderM1(body){
+  var m = state.m[1];
+  body.innerHTML =
+    '<div class="card" style="background:var(--accent-bg);border-color:#cbdde9;">'
+    + '<h2 class="h2">📖 パンフレットってなんだろう？</h2>'
+    + '<p>パンフレットは、<b>写真や絵と短い文章を組み合わせて</b>、あるものの魅力を紹介する冊子だよ。'
+    + '観光案内や学校紹介など、身のまわりにもたくさんあるね。</p>'
+    + '<p>この学習では、5つのミッションで<b>「おすすめパンフレット」の原稿と設計図</b>を完成させるよ。<br>'
+    + '<b>① テーマを決める → ② 情報を集める → ③ レイアウトを考える → ④ 原稿を書く → ⑤ 仕上げ・振り返り</b></p>'
+    + '<p class="sub">※このアプリで作るのは「原稿と設計図」。本物のパンフレットは、あとでCanvaなどで仕上げるよ。</p>'
+    + '</div>'
+    + field1('m1-image', 'どんなパンフレットを作ってみたい？', 'イメージを1〜2文で書いてみよう。', m.image, 2)
+    + field1('m1-theme', 'テーマ：何を推薦（すいせん）しますか？', 'れい：わたしの町の図書館、好きな本、おすすめの給食メニュー…', m.theme, 2)
+    + field1('m1-audience', '相手：だれに向けて書きますか？できるだけ具体的に', '', m.audience, 2,
+        '「音楽が好きな人」ではなく「音楽に興味を持ち始めた同級生」のように、学年・くわしさ・好みなどを具体的に考えてみよう')
+    + field1('m1-purpose', '目的：読んだ人にどうなってほしいですか？', 'れい：実際に行ってみたくなってほしい、読んでみたくなってほしい…', m.purpose, 2);
+
+  bindTextarea('m1-image', function(v){ m.image = v; }, 1);
+  bindTextarea('m1-theme', function(v){ m.theme = v; }, 1);
+  bindTextarea('m1-audience', function(v){ m.audience = v; }, 1);
+  bindTextarea('m1-purpose', function(v){ m.purpose = v; }, 1);
+}
+function field1(id, label, placeholder, value, rows, hint){
+  return '<div class="field"><label for="' + id + '">' + esc(label) + '</label>'
+    + (hint ? '<div class="hint">💡 ' + esc(hint) + '</div>' : '')
+    + '<textarea id="' + id + '" rows="' + rows + '" placeholder="' + esc(placeholder) + '">' + esc(value) + '</textarea></div>';
+}
+function bindTextarea(id, setter, missionNo){
+  $(id).addEventListener('input', function(){
+    setter(this.value);
+    scheduleMissionSave(missionNo);
+  });
+}
+
+/* ---------- ミッション2 ---------- */
+function renderM2(body){
+  var m = state.m[2];
+  if(m.cards.length === 0){ m.cards.push({ info:'', source:'' }); }
+  body.innerHTML =
+    '<p>伝えたい情報を「情報カード」に集めよう。<b>3枚以上</b>できたらミッション完了！</p>'
+    + '<div id="m2-cards"></div>'
+    + '<button class="btn ghost" id="m2-add">＋ カードを追加する</button>';
+  renderM2Cards();
+  $('m2-add').addEventListener('click', function(){
+    m.cards.push({ info:'', source:'' });
+    renderM2Cards();
+    scheduleMissionSave(2);
+  });
+}
+function renderM2Cards(){
+  var m = state.m[2];
+  var wrap = $('m2-cards');
+  var html = '';
+  m.cards.forEach(function(c, i){
+    html += '<div class="info-card" style="margin-top:16px;">'
+      + '<span class="num">カード ' + (i + 1) + '</span>'
+      + (m.cards.length > 1 ? '<button class="del" data-i="' + i + '">🗑 けす</button>' : '')
+      + '<div class="field" style="margin-top:8px;"><label>伝えたい情報</label>'
+      + '<textarea rows="2" data-i="' + i + '" data-k="info" placeholder="れい：土日は朝9時から開いている">' + esc(c.info) + '</textarea></div>'
+      + '<div class="field" style="margin-bottom:4px;"><label>どこで調べた？（情報源）</label>'
+      + '<input type="text" data-i="' + i + '" data-k="source" placeholder="れい：市のホームページ、図書館の人へのインタビュー" value="' + esc(c.source) + '"></div>'
+      + '</div>';
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('textarea,input').forEach(function(el){
+    el.addEventListener('input', function(){
+      m.cards[Number(this.dataset.i)][this.dataset.k] = this.value;
+      scheduleMissionSave(2);
+    });
+  });
+  wrap.querySelectorAll('.del').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(!confirm('カード' + (Number(this.dataset.i) + 1) + 'をけしてもいい？')) return;
+      m.cards.splice(Number(this.dataset.i), 1);
+      renderM2Cards();
+      scheduleMissionSave(2);
+    });
+  });
+}
+
+/* ---------- ミッション3 ---------- */
+var GRID = 5;
+function snap(v){ return Math.round(v / GRID) * GRID; }
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+function formatSvg(key){
+  var s = 'width="120" height="76" viewBox="0 0 120 76" xmlns="http://www.w3.org/2000/svg"';
+  var line = 'stroke="#3d7ea6" stroke-width="1.6" stroke-dasharray="4 3"';
+  var paper = 'fill="#ffffff" stroke="#8aa4b3" stroke-width="1.6"';
+  if(key === 'futatsuori'){
+    return '<svg ' + s + '><rect x="18" y="10" width="84" height="56" rx="3" ' + paper + '/>'
+      + '<line x1="60" y1="10" x2="60" y2="66" ' + line + '/>'
+      + '<path d="M70 4 Q60 -2 50 4" fill="none" stroke="#d9832e" stroke-width="2"/></svg>';
+  }
+  if(key === 'mitsuori'){
+    return '<svg ' + s + '><rect x="12" y="10" width="96" height="56" rx="3" ' + paper + '/>'
+      + '<line x1="44" y1="10" x2="44" y2="66" ' + line + '/><line x1="76" y1="10" x2="76" y2="66" ' + line + '/></svg>';
+  }
+  if(key === 'kannon'){
+    return '<svg ' + s + '><rect x="30" y="10" width="60" height="56" rx="2" ' + paper + '/>'
+      + '<rect x="10" y="10" width="20" height="56" rx="2" fill="#eaf2f7" stroke="#8aa4b3" stroke-width="1.6"/>'
+      + '<rect x="90" y="10" width="20" height="56" rx="2" fill="#eaf2f7" stroke="#8aa4b3" stroke-width="1.6"/>'
+      + '<line x1="30" y1="10" x2="30" y2="66" ' + line + '/><line x1="90" y1="10" x2="90" y2="66" ' + line + '/></svg>';
+  }
+  return '<svg ' + s + '><rect x="24" y="14" width="76" height="52" rx="2" fill="#eaf2f7" stroke="#8aa4b3" stroke-width="1.4"/>'
+    + '<rect x="20" y="12" width="76" height="52" rx="2" ' + paper + '/>'
+    + '<line x1="58" y1="12" x2="58" y2="64" ' + line + '/></svg>';
+}
+
+function renderM3(body){
+  var m = state.m[3];
+  var html = '<h2 class="h2">ステップA：紙の形式を選ぼう</h2><div class="format-grid">';
+  Object.keys(FORMATS).forEach(function(key){
+    var f = FORMATS[key];
+    html += '<button class="format-card' + (m.formatKey === key ? ' selected' : '') + '" data-key="' + key + '">'
+      + formatSvg(key)
+      + '<div class="f-name">' + esc(f.label) + '</div>'
+      + '<div class="f-desc">' + esc(f.desc) + '</div></button>';
+  });
+  html += '</div><div id="m3-face-opt"></div><div id="m3-pages" style="margin-top:22px;"></div>';
+  body.innerHTML = html;
+
+  body.querySelectorAll('.format-card').forEach(function(btn){
+    btn.addEventListener('click', function(){ selectFormat(btn.dataset.key); });
+  });
+  renderM3FaceOpt();
+  renderM3Pages();
+}
+
+function selectFormat(key){
+  var m = state.m[3];
+  if(m.formatKey === key) return;
+  var configured = m.pages.some(function(p){ return p.template; });
+  if(configured && !confirm('紙の形式を変えると、面の数が変わります。作ったレイアウトはできるだけ残しますが、へった分は消えます。変えてもいい？')) return;
+  m.formatKey = key;
+  m.format = FORMATS[key].label;
+  var f = FORMATS[key];
+  if(typeof f.faces === 'number'){ setPageCount(f.faces); }
+  else if(Array.isArray(f.faces)){ setPageCount(f.faces.indexOf(m.pageCount) !== -1 ? m.pageCount : f.faces[0]); }
+  else { setPageCount(clamp(m.pageCount || f.min, f.min, f.max)); }
+  renderM3($('mission-body'));
+  scheduleMissionSave(3);
+}
+
+function setPageCount(count){
+  var m = state.m[3];
+  var newPages = [];
+  for(var i = 0; i < count; i++){
+    var p = m.pages[i] || { pageNumber: i + 1, template:'', blocks:[] };
+    p.pageNumber = i + 1;
+    newPages.push(p);
+  }
+  m.pages = newPages;
+  m.pageCount = count;
+}
+
+function renderM3FaceOpt(){
+  var m = state.m[3];
+  var el = $('m3-face-opt');
+  if(!m.formatKey){ el.innerHTML = ''; return; }
+  var f = FORMATS[m.formatKey];
+  if(Array.isArray(f.faces)){
+    el.innerHTML = '<div class="face-opt"><b>面の数：</b> '
+      + f.faces.map(function(n){
+          return '<button class="btn small ' + (m.pageCount === n ? '' : 'ghost') + '" data-n="' + n + '" style="margin-right:8px;">' + n + '面</button>';
+        }).join('')
+      + '</div>';
+    el.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){
+        setPageCount(Number(b.dataset.n));
+        renderM3($('mission-body'));
+        scheduleMissionSave(3);
+      });
+    });
+  } else if(f.custom){
+    el.innerHTML = '<div class="face-opt"><b>ページ数（3〜6）：</b> '
+      + '<input type="number" id="m3-pagecount" class="select" style="width:90px;" min="' + f.min + '" max="' + f.max + '" value="' + m.pageCount + '"> ページ</div>';
+    $('m3-pagecount').addEventListener('change', function(){
+      var v = clamp(Math.round(Number(this.value) || f.min), f.min, f.max);
+      this.value = v;
+      setPageCount(v);
+      renderM3($('mission-body'));
+      scheduleMissionSave(3);
     });
   } else {
-    html += `<rect id="clickCatcher" x="${leftPad}" y="${axisY-30}" width="${usableW}" height="60" fill="transparent"/>`;
-    if(placedArrowValue!==null){
-      html += arrowSvg(toX(placedArrowValue), axisY);
-    }
+    el.innerHTML = '<div class="face-opt"><b>' + esc(f.label) + '</b>は <b>' + f.faces + '面</b> だよ。下で1面ずつレイアウトを選ぼう。</div>';
   }
-  svg.innerHTML = html;
-  if(q.kind==='place'){
-    const catcher = document.getElementById('clickCatcher');
-    const handler = (evX)=>{
-      const rect = svg.getBoundingClientRect();
-      const scaleX = W/rect.width;
-      const xPx = (evX-rect.left)*scaleX;
-      const raw = q.min + (xPx-leftPad)/usableW*(q.max-q.min);
-      const snapped = Math.round(raw/q.step)*q.step;
-      const clamped = Math.min(q.max, Math.max(q.min, snapped));
-      if(placedArrowValue!==null && Math.abs(placedArrowValue-clamped)<q.step/2){
-        placedArrowValue = null;
-      } else {
-        placedArrowValue = Number(clamped.toFixed(6));
-      }
-      drawNumberLine(q);
-      checkPlaceAnswer(q);
+}
+
+function tplMiniHtml(tplKey){
+  var t = TEMPLATES[tplKey];
+  var html = '<span class="tpl-mini">';
+  t.blocks.forEach(function(b){
+    html += '<span class="mb ' + b.type + '" style="left:' + b.x + '%;top:' + b.y + '%;width:' + b.w + '%;height:' + b.h + '%;"></span>';
+  });
+  return html + '</span>';
+}
+
+function renderM3Pages(){
+  var m = state.m[3];
+  var wrap = $('m3-pages');
+  if(!m.formatKey || m.pages.length === 0){ wrap.innerHTML = ''; return; }
+  var html = '<h2 class="h2">ステップB：面ごとにレイアウトを決めよう</h2>'
+    + '<p class="sub">テンプレートを選ぶと、写真ブロックと文章ブロックが置かれるよ。ブロックはドラッグで動かせて、右下の四角で大きさを変えられる。</p>';
+  m.pages.forEach(function(p, idx){
+    html += '<div class="page-card"><div class="page-head">' + p.pageNumber + '面'
+      + (p.template ? ' <span class="badge done">✔ ' + esc(TEMPLATES[p.template].name) + '</span>' : ' <span class="badge doing">テンプレートを選ぼう</span>')
+      + '</div><div class="tpl-row">';
+    Object.keys(TEMPLATES).forEach(function(key){
+      html += '<button class="tpl-btn' + (p.template === key ? ' selected' : '') + '" data-page="' + idx + '" data-tpl="' + key + '">'
+        + tplMiniHtml(key) + '<span class="tpl-name">' + esc(TEMPLATES[key].name) + '</span></button>';
+    });
+    html += '</div>';
+    if(p.template){
+      html += '<div class="canvas" data-page="' + idx + '">';
+      p.blocks.forEach(function(b){
+        html += '<div class="blk ' + b.type + '" data-id="' + b.id + '" style="left:' + b.x + '%;top:' + b.y + '%;width:' + b.w + '%;height:' + b.h + '%;">'
+          + '<span>' + (b.type === 'photo' ? '📷 ' : '✏️ ') + esc(b.label) + '</span>'
+          + '<span class="blk-handle"></span></div>';
+      });
+      html += '</div><button class="btn ghost small" data-reset="' + idx + '">はじめの配置にもどす</button>';
+    }
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.tpl-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      applyTemplate(Number(btn.dataset.page), btn.dataset.tpl);
+    });
+  });
+  wrap.querySelectorAll('[data-reset]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var p = m.pages[Number(btn.dataset.reset)];
+      applyTemplateBlocks(p, p.template);
+      renderM3Pages();
+      scheduleMissionSave(3);
+    });
+  });
+  wrap.querySelectorAll('.canvas').forEach(function(cv){
+    enableCanvasDrag(cv, m.pages[Number(cv.dataset.page)]);
+  });
+}
+
+function applyTemplateBlocks(page, tplKey){
+  page.template = tplKey;
+  page.blocks = TEMPLATES[tplKey].blocks.map(function(b, i){
+    return { id:'block' + (i + 1), type:b.type, label:b.label, x:b.x, y:b.y, w:b.w, h:b.h };
+  });
+}
+function applyTemplate(pageIdx, tplKey){
+  var p = state.m[3].pages[pageIdx];
+  if(p.template === tplKey) return;
+  if(p.template && !confirm(p.pageNumber + '面のテンプレートを変えると、動かした配置ははじめにもどるよ。いい？')) return;
+  applyTemplateBlocks(p, tplKey);
+  renderM3Pages();
+  scheduleMissionSave(3);
+}
+
+function enableCanvasDrag(canvas, page){
+  var drag = null;
+  canvas.addEventListener('pointerdown', function(e){
+    var blkEl = e.target.closest('.blk');
+    if(!blkEl) return;
+    var blk = null;
+    for(var i = 0; i < page.blocks.length; i++){
+      if(page.blocks[i].id === blkEl.dataset.id){ blk = page.blocks[i]; break; }
+    }
+    if(!blk) return;
+    var isResize = !!e.target.closest('.blk-handle');
+    drag = {
+      blk: blk, el: blkEl, rect: canvas.getBoundingClientRect(),
+      mode: isResize ? 'resize' : 'move',
+      sx: e.clientX, sy: e.clientY,
+      ox: blk.x, oy: blk.y, ow: blk.w, oh: blk.h
     };
-    catcher.addEventListener('click', e=>handler(e.clientX));
-    catcher.addEventListener('touchstart', e=>{ e.preventDefault(); handler(e.touches[0].clientX); });
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(!drag) return;
+    var dx = (e.clientX - drag.sx) / drag.rect.width * 100;
+    var dy = (e.clientY - drag.sy) / drag.rect.height * 100;
+    var b = drag.blk;
+    if(drag.mode === 'move'){
+      b.x = clamp(snap(drag.ox + dx), 0, 100 - b.w);
+      b.y = clamp(snap(drag.oy + dy), 0, 100 - b.h);
+    } else {
+      b.w = clamp(snap(drag.ow + dx), 10, 100 - b.x);
+      b.h = clamp(snap(drag.oh + dy), 10, 100 - b.y);
+    }
+    drag.el.style.left = b.x + '%';
+    drag.el.style.top = b.y + '%';
+    drag.el.style.width = b.w + '%';
+    drag.el.style.height = b.h + '%';
+  });
+  function end(){
+    if(!drag) return;
+    drag = null;
+    scheduleMissionSave(3);
   }
-}
-function arrowSvg(x,axisY){
-  return `<polygon points="${x-8},${axisY+40} ${x+8},${axisY+40} ${x+8},${axisY+22} ${x+14},${axisY+22} ${x},${axisY+6} ${x-14},${axisY+22} ${x-8},${axisY+22}" fill="#3DAA6E"/>`;
-}
-function checkPlaceAnswer(q){
-  if(placedArrowValue===null) return;
-  const mode=3;
-  const ok = Math.abs(placedArrowValue - q.answer) <= q.step + 1e-9;
-  markResult(mode,q.id,ok);
-  showFeedback(ok);
-  if(!ok && wrongStreakOf(mode,q.id)>=3){
-    document.getElementById('feedback').innerHTML += `<div style="font-size:0.9rem;">${q.target} の場所だよ。${q.hint}</div>`;
-  }
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
 }
 
-/* ===================== モード④：筆算 ===================== */
-let hissanState = null; // {cols:[...], focusedCol:null}
-function renderMode4(q, mode){
-  const idx = (progress[mode].current%QUESTIONS[4].length)+1;
-  content.innerHTML = `
-    ${qBoxOpen(mode,q,idx,30,`${q.a} ${q.op} ${q.b} を筆算でしましょう。`)}
-    <div style="overflow-x:auto;"><table class="hissan-table" id="hissanTable"></table></div>
-    <div class="controls">
-      <button class="btn" id="checkBtn">こたえる</button>
-    </div>
-    ${feedbackEl()}
-  `;
-  attachHint();
-  buildHissan(q);
-  document.getElementById('checkBtn').addEventListener('click', ()=>checkHissan(q,mode));
-}
-function toColsArray(num){
-  const fixed = Math.abs(num).toFixed(3);
-  const [ip,dp] = fixed.split('.');
-  const ip3 = ip.padStart(3,' ');
-  return [ip3[0],ip3[1],ip3[2],dp[0],dp[1],dp[2]];
-}
-function buildHissan(q){
-  const aCols = toColsArray(q.a);
-  const bCols = toColsArray(q.b);
-  hissanState = {cols:new Array(6).fill(''), op:q.op};
-  let rows='';
-  // row a
-  rows += '<tr><td></td>' + aCols.slice(0,3).map(c=>`<td class="given">${c.trim()}</td>`).join('') +
-    `<td class="given point">．</td>` + aCols.slice(3).map(c=>`<td class="given">${c}</td>`).join('') + '</tr>';
-  // row b with operator
-  rows += `<tr class="opline"><td class="op-sign">${q.op}</td>` + bCols.slice(0,3).map(c=>`<td class="given">${c.trim()}</td>`).join('') +
-    `<td class="given point">．</td>` + bCols.slice(3).map(c=>`<td class="given">${c}</td>`).join('') + '</tr>';
-  // answer row
-  rows += '<tr><td></td>' + [0,1,2].map(i=>`<td class="input-cell" data-i="${i}"></td>`).join('') +
-    `<td class="point">．</td>` + [3,4,5].map(i=>`<td class="input-cell" data-i="${i}"></td>`).join('') + '</tr>';
-  document.getElementById('hissanTable').innerHTML = rows;
-  document.querySelectorAll('#hissanTable .input-cell').forEach(cell=>{
-    cell.addEventListener('click', ()=>openNumpad(cell));
-  });
-}
-function openNumpad(cell){
-  numpad.innerHTML='';
-  for(let n=0;n<=9;n++){
-    const b=document.createElement('button');
-    b.textContent=n;
-    b.addEventListener('click', ()=>{
-      cell.textContent=n;
-      cell.classList.add('filled');
-      hissanState.cols[parseInt(cell.dataset.i)] = String(n);
-      numpadOverlay.classList.remove('show');
+/* ---------- ミッション4 ---------- */
+function blockKey(page, block){ return 'p' + page.pageNumber + '_' + block.id; }
+function textBlockKeys(){
+  var keys = [];
+  state.m[3].pages.forEach(function(p){
+    if(!p.template) return;
+    p.blocks.forEach(function(b){
+      if(b.type === 'text') keys.push(blockKey(p, b));
     });
-    numpad.appendChild(b);
-  }
-  const clear=document.createElement('button');
-  clear.textContent='クリア'; clear.className='clear';
-  clear.addEventListener('click', ()=>{
-    cell.textContent=''; cell.classList.remove('filled');
-    hissanState.cols[parseInt(cell.dataset.i)]='';
-    numpadOverlay.classList.remove('show');
   });
-  numpad.appendChild(clear);
-  const close=document.createElement('button');
-  close.textContent='とじる'; close.className='close';
-  close.addEventListener('click', ()=>numpadOverlay.classList.remove('show'));
-  numpad.appendChild(close);
-  numpadOverlay.classList.add('show');
-}
-function checkHissan(q, mode){
-  const expected = toColsArray(q.answer).map((c,i)=> i<3 ? c.trim() : c);
-  const got = hissanState.cols.map((c,i)=> i<3 ? (c||'0').trim() : (c||'0'));
-  // normalize leading blanks in expected int part to '0' too for comparison fairness on leading zeros except leftmost
-  const ok = [0,1,2,3,4,5].every(i=>{
-    const e = expected[i]===''?'0':expected[i];
-    const g = got[i]===''?'0':got[i];
-    return e===g;
-  });
-  markResult(mode, q.id, ok);
-  showFeedback(ok);
-  if(!ok && wrongStreakOf(mode,q.id)>=3){
-    const fb = document.getElementById('feedback');
-    const ansStr = q.answer.toFixed(3).replace(/^0+(?=\d)/,'');
-    fb.innerHTML += `<div style="font-size:0.9rem;">正解は <b>${q.answer}</b> だよ。桁をそろえて、足りない位は0で補おう。</div>`;
-  }
+  return keys;
 }
 
-/* ===================== まとめ画面 ===================== */
-function renderSummary(mode){
-  const p = progress[mode];
-  const pct = Math.round(p.correct/p.total*100);
-  let weakTag = '';
-  if(p.wrong.length>0){
-    if(mode===1) weakTag = '10倍・100倍の問題が苦手かも！';
-    else if(mode===2) weakTag = '単位変換（ポチ）の問題が苦手かも！';
-    else if(mode===3) weakTag = '数直線の読み取りが苦手かも！';
-    else weakTag = '筆算の桁あわせが苦手かも！';
+function renderM4(body){
+  var m3 = state.m[3];
+  var m4 = state.m[4];
+  if(!checkDone(3)){
+    body.innerHTML = '<div class="card" style="background:var(--amber-bg);">'
+      + '<p><b>先にミッション3を完成させよう！</b><br>レイアウトが決まると、文章ブロックの数だけ原稿の入力らんがここに出てくるよ。</p></div>';
+    return;
   }
-  summaryModal.innerHTML = `
-    <h2 style="color:var(--main);margin-top:0;">${modeName(mode)} まとめ</h2>
-    <p>せいかい ${p.correct} / ${p.total} （${pct}%）</p>
-    <svg width="220" height="40"><rect x="0" y="10" width="220" height="20" fill="#eee" rx="6"/><rect x="0" y="10" width="${220*pct/100}" height="20" fill="#3DAA6E" rx="6"/></svg>
-    ${weakTag ? `<p><span class="tag">${weakTag}</span></p>` : '<p>パーフェクト！🎉</p>'}
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;">
-      ${p.wrong.length>0 ? `<button class="btn" id="retryBtn">まちがえた問題にもう一度チャレンジ</button>` : ''}
-      <button class="btn secondary" id="closeSummaryBtn">とじる</button>
-    </div>
-  `;
-  summaryOverlay.classList.add('show');
-  const retryBtn = document.getElementById('retryBtn');
-  if(retryBtn) retryBtn.addEventListener('click', ()=>{
-    summaryOverlay.classList.remove('show');
-    retryWrong(mode);
+  var html = '<p>ミッション3で決めたレイアウトに合わせて、原稿を書こう。<b>✏️文章ブロックの本文</b>を全部書いたら完了！<br>'
+    + '<span class="sub">📷写真ブロックのメモは、あとでCanvaで作るときの参考になるよ（書かなくても完了できる）。</span></p>';
+  m3.pages.forEach(function(p){
+    if(!p.template) return;
+    html += '<div class="page-card"><div class="page-head">' + p.pageNumber + '面（' + esc(TEMPLATES[p.template].name) + '）</div>';
+    p.blocks.forEach(function(b){
+      var key = blockKey(p, b);
+      if(b.type === 'text'){
+        html += '<div class="field"><label>✏️ ' + esc(b.label) + '（本文）</label>'
+          + '<textarea rows="4" data-key="' + key + '" data-kind="text" placeholder="ここに' + esc(b.label) + 'の文章を書こう">' + esc(m4.texts[key] || '') + '</textarea></div>';
+      } else {
+        html += '<div class="field"><label>📷 ' + esc(b.label) + '：どんな写真・イラストを入れる？</label>'
+          + '<input type="text" data-key="' + key + '" data-kind="photo" placeholder="れい：外から見た図書館の全体写真" value="' + esc(m4.photoNotes[key] || '') + '"></div>';
+      }
+    });
+    html += '</div>';
   });
-  document.getElementById('closeSummaryBtn').addEventListener('click', ()=>{
-    summaryOverlay.classList.remove('show');
+  body.innerHTML = html;
+  body.querySelectorAll('[data-key]').forEach(function(el){
+    el.addEventListener('input', function(){
+      if(this.dataset.kind === 'text'){ m4.texts[this.dataset.key] = this.value; }
+      else { m4.photoNotes[this.dataset.key] = this.value; }
+      scheduleMissionSave(4);
+    });
   });
 }
+
+/* ---------- ミッション5 ---------- */
+function buildSummaryText(){
+  var m1 = state.m[1], m3 = state.m[3], m4 = state.m[4];
+  var lines = [];
+  lines.push('■ おすすめパンフレット 原稿メモ（' + state.name + '）');
+  lines.push('テーマ：' + m1.theme);
+  lines.push('相手：' + m1.audience);
+  lines.push('目的：' + m1.purpose);
+  lines.push('用紙の形式：' + (m3.format || '未設定') + (m3.pageCount ? '（' + m3.pageCount + '面）' : ''));
+  m3.pages.forEach(function(p){
+    if(!p.template) return;
+    lines.push('');
+    lines.push('────────────────');
+    lines.push('【' + p.pageNumber + '面】 レイアウト：' + TEMPLATES[p.template].name);
+    p.blocks.forEach(function(b){
+      var key = blockKey(p, b);
+      if(b.type === 'text'){
+        lines.push('✏️ ' + b.label + '：');
+        lines.push(m4.texts[key] || '（未記入）');
+      } else {
+        lines.push('📷 ' + b.label + '（写真メモ）：' + (m4.photoNotes[key] || '（未記入）'));
+      }
+    });
+  });
+  return lines.join('\n');
+}
+
+function renderM5(body){
+  var m = state.m[5];
+  var summary = buildSummaryText();
+  body.innerHTML =
+    field1('m5-reflection', '工夫した点・がんばった点を振り返って書こう',
+      'れい：相手が同級生だから、むずかしい言葉を使わないようにした。', m.reflection, 4)
+    + '<h2 class="h2" style="margin-top:20px;">📄 レイアウトと原稿のまとめ</h2>'
+    + '<p class="sub">Canvaでパンフレットを作るときは、これをコピーして参考にしよう。</p>'
+    + '<div class="mini-pages" style="margin-bottom:12px;">' + miniPagesHtml(state.m[3]) + '</div>'
+    + '<div class="summary-box" id="m5-summary">' + esc(summary) + '</div>'
+    + '<div style="margin-top:12px;"><button class="btn green" id="m5-copy">📋 原稿をコピーする</button></div>';
+
+  bindTextarea('m5-reflection', function(v){ m.reflection = v; }, 5);
+  $('m5-copy').addEventListener('click', function(){
+    copyText(buildSummaryText(), this);
+  });
+}
+
+function copyText(text, btn){
+  var orig = btn.textContent;
+  function done(){
+    btn.textContent = '✔ コピーしました！';
+    setTimeout(function(){ btn.textContent = orig; }, 2200);
+  }
+  function fallback(){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e){ toast('コピーできませんでした。まとめの文字をなぞってコピーしてね。'); }
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(fallback);
+  } else { fallback(); }
+}
+
+/** ミッション3のレイアウトをミニチュア表示（児童のまとめ・教員詳細で共用） */
+function miniPagesHtml(m3){
+  if(!m3 || !m3.pages || m3.pages.length === 0) return '<span class="sub">（レイアウト未設定）</span>';
+  var html = '';
+  m3.pages.forEach(function(p){
+    html += '<div class="mini-page"><span class="tpl-mini">';
+    (p.blocks || []).forEach(function(b){
+      html += '<span class="mb ' + esc(b.type) + '" style="left:' + Number(b.x) + '%;top:' + Number(b.y) + '%;width:' + Number(b.w) + '%;height:' + Number(b.h) + '%;"></span>';
+    });
+    html += '</span><div class="cap">' + p.pageNumber + '面' + (p.template && TEMPLATES[p.template] ? '：' + esc(TEMPLATES[p.template].name) : '') + '</div></div>';
+  });
+  return html;
+}
+
+/* ============================================================
+ * 振り返りジャーナル（児童側）
+ * ============================================================ */
+var currentHour = 0;
+function openJournal(){
+  $('journal-who').textContent = '👤 ' + state.name + ' さん';
+  currentHour = 0;
+  $('journal-editor').style.display = 'none';
+  renderJournalGrid();
+  showScreen('screen-journal');
+}
+function renderJournalGrid(){
+  var html = '';
+  for(var h = 1; h <= 10; h++){
+    var j = state.journals[h];
+    var written = !!(j && j.content);
+    var hasComment = !!(j && j.comment);
+    html += '<button class="hour-card' + (written ? ' written' : '') + (currentHour === h ? ' selected' : '') + '" data-h="' + h + '">'
+      + '<div class="hc-title">' + h + '時間目 '
+      + (written ? '<span class="badge done">記入ずみ</span>' : '<span class="badge locked">未記入</span>')
+      + (hasComment ? ' <span class="badge doing">💬 先生から</span>' : '')
+      + '</div>'
+      + '<div class="hc-prev">' + esc(written ? j.content : 'まだ書いていないよ') + '</div>'
+      + '</button>';
+  }
+  $('journal-grid').innerHTML = html;
+  document.querySelectorAll('#journal-grid .hour-card').forEach(function(btn){
+    btn.addEventListener('click', function(){ selectHour(Number(btn.dataset.h)); });
+  });
+}
+function selectHour(h){
+  flushSaves();
+  currentHour = h;
+  renderJournalGrid();
+  var j = state.journals[h];
+  $('journal-editor').style.display = 'block';
+  $('journal-editor-title').textContent = h + '時間目の振り返り';
+  var ta = $('journal-text');
+  ta.value = (j && j.content) || '';
+  var cbox = $('journal-comment');
+  if(j && j.comment){
+    cbox.innerHTML = '<div class="comment-box"><div class="from">💬 先生からのコメント' + (j.commentAt ? '（' + esc(j.commentAt) + '）' : '') + '</div>'
+      + '<div>' + esc(j.comment) + '</div></div>';
+  } else {
+    cbox.innerHTML = '';
+  }
+  $('journal-editor').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  ta.focus();
+}
+$('journal-text').addEventListener('input', function(){
+  var h = currentHour;
+  if(!h) return;
+  var content = this.value;
+  if(!state.journals[h]) state.journals[h] = { hour:h, content:'', comment:'', commentAt:'', updatedAt:'' };
+  state.journals[h].content = content;
+  debounceSave('journal' + h, function(){
+    saveChip('saving');
+    run('apiSaveJournal', state.code, h, content)
+      .then(function(){
+        saveChip('saved');
+        renderJournalGrid();
+      })
+      .catch(function(){
+        saveChip('error');
+        toast('保存できませんでした。通信をたしかめてね。');
+      });
+  });
+});
+
+/* ============================================================
+ * 教員ページ
+ * ============================================================ */
+var teacher = null; /* {pw, currentYear, years} */
+
+$('link-teacher').addEventListener('click', function(){
+  $('teacher-pw').value = '';
+  showScreen('screen-teacher-login');
+});
+$('btn-teacher-back').addEventListener('click', function(){ showScreen('screen-login'); });
+$('teacher-pw').addEventListener('keydown', function(e){ if(e.key === 'Enter') teacherLogin(); });
+$('btn-teacher-login').addEventListener('click', teacherLogin);
+$('btn-teacher-logout').addEventListener('click', function(){
+  teacher = null;
+  showScreen('screen-login');
+});
+
+function teacherLogin(){
+  var pw = $('teacher-pw').value.trim();
+  if(!pw){ toast('パスワードを入力してください。'); return; }
+  loading(true);
+  run('apiTeacherAuth', pw).then(function(res){
+    loading(false);
+    teacher = { pw: pw, currentYear: res.currentYear, years: res.years };
+    setupTeacherUI();
+    showScreen('screen-teacher');
+    loadTeacherProgress();
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : 'ログインできませんでした。');
+  });
+}
+
+function yearOptions(selectEl, selected){
+  selectEl.innerHTML = teacher.years.map(function(y){
+    return '<option value="' + y + '"' + (y === selected ? ' selected' : '') + '>' + y + '年度</option>';
+  }).join('');
+}
+
+function setupTeacherUI(){
+  yearOptions($('t-progress-year'), teacher.currentYear);
+  yearOptions($('t-journal-year'), teacher.currentYear);
+  var hourSel = $('t-journal-hour');
+  var opts = '';
+  for(var h = 1; h <= 10; h++){ opts += '<option value="' + h + '">' + h + '時間目</option>'; }
+  hourSel.innerHTML = opts;
+  $('t-current-year').textContent = teacher.currentYear + '年度';
+  $('t-year-input').value = teacher.currentYear;
+}
+
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var tab = btn.dataset.tab;
+    $('t-tab-progress').style.display = tab === 'progress' ? 'block' : 'none';
+    $('t-tab-journal').style.display = tab === 'journal' ? 'block' : 'none';
+    $('t-tab-year').style.display = tab === 'year' ? 'block' : 'none';
+    if(tab === 'progress') loadTeacherProgress();
+    if(tab === 'journal') loadTeacherJournals();
+  });
+});
+
+/* ----- タブ1：進捗一覧 ----- */
+$('t-progress-year').addEventListener('change', loadTeacherProgress);
+function loadTeacherProgress(){
+  var year = Number($('t-progress-year').value);
+  loading(true);
+  run('apiTeacherGetProgress', teacher.pw, year).then(function(rows){
+    loading(false);
+    if(rows.length === 0){
+      $('t-progress-table').innerHTML = '<p class="unwritten">この年度に登録された児童はまだいません。</p>';
+      return;
+    }
+    var html = '<table class="tbl"><tr><th>コード</th><th>氏名</th>'
+      + '<th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>最終更新</th></tr>';
+    rows.forEach(function(r){
+      html += '<tr class="clickable" data-code="' + esc(r.code) + '"><td>' + esc(r.code) + '</td><td>' + esc(r.name) + '</td>';
+      r.done.forEach(function(d){
+        html += '<td class="center">' + (d ? '<span class="mark-done">●</span>' : '<span class="mark-not">○</span>') + '</td>';
+      });
+      html += '<td>' + esc(r.updatedAt) + '</td></tr>';
+    });
+    html += '</table>';
+    $('t-progress-table').innerHTML = html;
+    document.querySelectorAll('#t-progress-table tr.clickable').forEach(function(tr){
+      tr.addEventListener('click', function(){ openStudentDetail(year, tr.dataset.code); });
+    });
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '読み込みに失敗しました。');
+  });
+}
+
+var detailCtx = null; /* {year, code} */
+function openStudentDetail(year, code){
+  loading(true);
+  run('apiTeacherGetStudentDetail', teacher.pw, year, code).then(function(res){
+    loading(false);
+    detailCtx = { year: year, code: code };
+    $('detail-title').textContent = res.name + '（' + code + '・' + year + '年度）';
+    $('detail-name-input').value = res.name;
+    $('detail-body').innerHTML = studentDetailHtml(res.missions);
+    $('detail-modal').classList.add('show');
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '読み込みに失敗しました。');
+  });
+}
+$('btn-detail-close').addEventListener('click', function(){ $('detail-modal').classList.remove('show'); });
+$('detail-modal').addEventListener('click', function(e){ if(e.target === this) this.classList.remove('show'); });
+
+$('btn-detail-name-save').addEventListener('click', function(){
+  if(!detailCtx) return;
+  var newName = $('detail-name-input').value.trim();
+  if(!newName){ toast('氏名を入力してください。'); return; }
+  loading(true);
+  run('apiTeacherUpdateName', teacher.pw, detailCtx.year, detailCtx.code, newName).then(function(res){
+    loading(false);
+    toast('氏名を「' + res.name + '」に修正しました。');
+    $('detail-title').textContent = res.name + '（' + detailCtx.code + '・' + detailCtx.year + '年度）';
+    loadTeacherProgress();
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '修正に失敗しました。');
+  });
+});
+
+function parseData(str){
+  if(!str) return null;
+  try { return JSON.parse(str); } catch(e){ return null; }
+}
+function dl(label, value){
+  return '<div><b>' + esc(label) + '：</b>' + (value ? esc(value) : '<span class="unwritten">未記入</span>') + '</div>';
+}
+function studentDetailHtml(missions){
+  var html = '';
+  var m1 = parseData(missions[1] ? missions[1].data : (missions['1'] || {}).data);
+  html += '<div class="detail-sec"><h4>ミッション1：テーマ設定 ' + doneBadge(missions, 1) + '</h4><div class="dt">'
+    + dl('イメージ', m1 && m1.image) + dl('テーマ', m1 && m1.theme)
+    + dl('相手', m1 && m1.audience) + dl('目的', m1 && m1.purpose) + '</div></div>';
+
+  var m2 = parseData(getM(missions, 2).data);
+  html += '<div class="detail-sec"><h4>ミッション2：情報カード ' + doneBadge(missions, 2) + '</h4><div class="dt">';
+  if(m2 && m2.cards && m2.cards.length){
+    m2.cards.forEach(function(c, i){
+      html += '<div style="margin-bottom:6px;">［カード' + (i + 1) + '］ ' + esc(c.info || '（未記入）')
+        + ' <span class="sub">（情報源：' + esc(c.source || '未記入') + '）</span></div>';
+    });
+  } else { html += '<span class="unwritten">カードなし</span>'; }
+  html += '</div></div>';
+
+  var m3 = parseData(getM(missions, 3).data);
+  html += '<div class="detail-sec"><h4>ミッション3：レイアウト ' + doneBadge(missions, 3) + '</h4><div class="dt">';
+  if(m3 && m3.format){
+    html += dl('形式', m3.format + '（' + (m3.pageCount || (m3.pages || []).length) + '面）')
+      + '<div class="mini-pages" style="margin-top:8px;">' + miniPagesHtml(m3) + '</div>';
+  } else { html += '<span class="unwritten">未設定</span>'; }
+  html += '</div></div>';
+
+  var m4 = parseData(getM(missions, 4).data);
+  html += '<div class="detail-sec"><h4>ミッション4：原稿 ' + doneBadge(missions, 4) + '</h4><div class="dt">';
+  if(m3 && m3.pages && m3.pages.length && m4){
+    m3.pages.forEach(function(p){
+      if(!p.template) return;
+      html += '<div style="margin:6px 0 2px;"><b>' + p.pageNumber + '面</b></div>';
+      (p.blocks || []).forEach(function(b){
+        var key = 'p' + p.pageNumber + '_' + b.id;
+        if(b.type === 'text'){
+          html += '<div style="margin-bottom:4px;">✏️ ' + esc(b.label) + '：' + (m4.texts && m4.texts[key] ? esc(m4.texts[key]) : '<span class="unwritten">未記入</span>') + '</div>';
+        } else {
+          html += '<div style="margin-bottom:4px;">📷 ' + esc(b.label) + '：' + (m4.photoNotes && m4.photoNotes[key] ? esc(m4.photoNotes[key]) : '<span class="unwritten">メモなし</span>') + '</div>';
+        }
+      });
+    });
+  } else { html += '<span class="unwritten">未記入</span>'; }
+  html += '</div></div>';
+
+  var m5 = parseData(getM(missions, 5).data);
+  html += '<div class="detail-sec"><h4>ミッション5：振り返り ' + doneBadge(missions, 5) + '</h4><div class="dt">'
+    + dl('工夫した点・がんばった点', m5 && m5.reflection) + '</div></div>';
+  return html;
+}
+function getM(missions, n){ return missions[n] || missions[String(n)] || {}; }
+function doneBadge(missions, n){
+  return getM(missions, n).done ? '<span class="badge done">完了</span>' : '<span class="badge locked">未完了</span>';
+}
+
+/* ----- タブ2：振り返り一覧 ----- */
+$('t-journal-year').addEventListener('change', loadTeacherJournals);
+$('t-journal-hour').addEventListener('change', loadTeacherJournals);
+function loadTeacherJournals(){
+  var year = Number($('t-journal-year').value);
+  var hour = Number($('t-journal-hour').value);
+  loading(true);
+  run('apiTeacherGetJournals', teacher.pw, year, hour).then(function(rows){
+    loading(false);
+    if(rows.length === 0){
+      $('t-journal-table').innerHTML = '<p class="unwritten">この年度に登録された児童はまだいません。</p>';
+      return;
+    }
+    var html = '<table class="tbl"><tr><th style="width:9em;">氏名</th><th>振り返り内容</th><th style="width:16em;">教員コメント</th><th style="width:5em;"></th></tr>';
+    rows.forEach(function(r, i){
+      html += '<tr><td>' + esc(r.name) + '<br><span class="sub">' + esc(r.code) + '</span></td>'
+        + '<td>' + (r.written ? esc(r.content) + (r.updatedAt ? '<br><span class="sub">' + esc(r.updatedAt) + '</span>' : '') : '<span class="unwritten">未記入</span>') + '</td>'
+        + '<td><textarea rows="2" style="width:100%;border:2px solid var(--line);border-radius:8px;padding:6px;" data-i="' + i + '">' + esc(r.comment) + '</textarea>'
+        + (r.commentAt ? '<span class="sub">返信：' + esc(r.commentAt) + '</span>' : '') + '</td>'
+        + '<td><button class="btn small" data-code="' + esc(r.code) + '" data-i="' + i + '">保存</button></td></tr>';
+    });
+    html += '</table>';
+    $('t-journal-table').innerHTML = html;
+    document.querySelectorAll('#t-journal-table button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var ta = document.querySelector('#t-journal-table textarea[data-i="' + btn.dataset.i + '"]');
+        var comment = ta.value.trim();
+        btn.disabled = true;
+        btn.textContent = '…';
+        run('apiTeacherSaveComment', teacher.pw, year, btn.dataset.code, hour, comment).then(function(){
+          btn.disabled = false;
+          btn.textContent = '保存';
+          toast('コメントを保存しました。');
+        }).catch(function(err){
+          btn.disabled = false;
+          btn.textContent = '保存';
+          toast(err && err.message ? err.message : '保存に失敗しました。');
+        });
+      });
+    });
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '読み込みに失敗しました。');
+  });
+}
+
+/* ----- タブ3：年度設定 ----- */
+$('btn-set-year').addEventListener('click', function(){
+  var y = Number($('t-year-input').value);
+  if(!(y >= 2000 && y <= 2100)){ toast('年度は2000〜2100の範囲で入力してください。'); return; }
+  if(!confirm(y + '年度に変更します。以後にログインする児童は' + y + '年度として登録されます。よろしいですか？')) return;
+  loading(true);
+  run('apiTeacherSetYear', teacher.pw, y).then(function(res){
+    loading(false);
+    teacher.currentYear = res.currentYear;
+    teacher.years = res.years;
+    setupTeacherUI();
+    toast(res.currentYear + '年度に変更しました。過去のデータはそのまま残っています。');
+  }).catch(function(err){
+    loading(false);
+    toast(err && err.message ? err.message : '変更に失敗しました。');
+  });
+});
 </script>
 </body>
 </html>
