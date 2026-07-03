@@ -63,43 +63,76 @@ function ss_() {
       // 保存済みのシートが削除されていた場合は作り直す
     }
   }
-  const created = SpreadsheetApp.create('おすすめパンフレットを作ろう（データ）');
-  props.setProperty('DATA_SPREADSHEET_ID', created.getId());
-  return created;
+  // 同時アクセスで2つ作ってしまわないよう、作成はロックの中で行う
+  const lock = LockService.getScriptLock();
+  let locked = false;
+  try { locked = lock.tryLock(20000); } catch (e) {}
+  try {
+    const recheckId = props.getProperty('DATA_SPREADSHEET_ID');
+    if (recheckId) {
+      try { return SpreadsheetApp.openById(recheckId); } catch (e) {}
+    }
+    const created = SpreadsheetApp.create('おすすめパンフレットを作ろう（データ）');
+    props.setProperty('DATA_SPREADSHEET_ID', created.getId());
+    return created;
+  } finally {
+    if (locked) lock.releaseLock();
+  }
 }
 
 function ensureSheets_() {
   const ss = ss_();
 
-  if (!ss.getSheetByName(SHEET_SETTINGS)) {
-    const sh = ss.insertSheet(SHEET_SETTINGS);
-    // 日本の年度（4月始まり）で初期値を決める
-    const d = new Date();
-    const nendo = (d.getMonth() + 1) >= 4 ? d.getFullYear() : d.getFullYear() - 1;
-    sh.getRange(1, 1, 2, 2).setValues([
-      ['現在の年度', nendo],
-      ['教員パスワード', '1258']
-    ]);
-    sh.getRange('B2').setNumberFormat('@'); // パスワードを文字列として保持
+  // 4シートすべて揃っていれば何もしない（通常アクセスはここで即リターン）
+  if (ss.getSheetByName(SHEET_SETTINGS) && ss.getSheetByName(SHEET_ROSTER) &&
+      ss.getSheetByName(SHEET_PROGRESS) && ss.getSheetByName(SHEET_JOURNAL)) {
+    return;
   }
 
-  if (!ss.getSheetByName(SHEET_ROSTER)) {
-    const sh = ss.insertSheet(SHEET_ROSTER);
-    sh.getRange(1, 1, 1, ROSTER_HEADERS.length).setValues([ROSTER_HEADERS]).setFontWeight('bold');
-    sh.setFrozenRows(1);
+  // 初回だけ：同時アクセスで同じシートを二重に作ろうとしないようロックする
+  const lock = LockService.getScriptLock();
+  let locked = false;
+  try { locked = lock.tryLock(20000); } catch (e) {}
+  try {
+    initSheet_(ss, SHEET_SETTINGS, function (sh) {
+      // 日本の年度（4月始まり）で初期値を決める
+      const d = new Date();
+      const nendo = (d.getMonth() + 1) >= 4 ? d.getFullYear() : d.getFullYear() - 1;
+      sh.getRange(1, 1, 2, 2).setValues([
+        ['現在の年度', nendo],
+        ['教員パスワード', '1258']
+      ]);
+      sh.getRange('B2').setNumberFormat('@'); // パスワードを文字列として保持
+    });
+    initSheet_(ss, SHEET_ROSTER, function (sh) {
+      sh.getRange(1, 1, 1, ROSTER_HEADERS.length).setValues([ROSTER_HEADERS]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    });
+    initSheet_(ss, SHEET_PROGRESS, function (sh) {
+      sh.getRange(1, 1, 1, PROGRESS_HEADERS.length).setValues([PROGRESS_HEADERS]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    });
+    initSheet_(ss, SHEET_JOURNAL, function (sh) {
+      sh.getRange(1, 1, 1, JOURNAL_HEADERS.length).setValues([JOURNAL_HEADERS]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    });
+  } finally {
+    if (locked) lock.releaseLock();
   }
+}
 
-  if (!ss.getSheetByName(SHEET_PROGRESS)) {
-    const sh = ss.insertSheet(SHEET_PROGRESS);
-    sh.getRange(1, 1, 1, PROGRESS_HEADERS.length).setValues([PROGRESS_HEADERS]).setFontWeight('bold');
-    sh.setFrozenRows(1);
+/** シートがなければ作って初期化する。同時実行で先に作られていた場合は静かにスキップする。 */
+function initSheet_(ss, name, initFn) {
+  if (ss.getSheetByName(name)) return;
+  let sh;
+  try {
+    sh = ss.insertSheet(name);
+  } catch (e) {
+    // 別の実行が先に作成済みならOK。そうでなければ本当のエラー
+    if (ss.getSheetByName(name)) return;
+    throw e;
   }
-
-  if (!ss.getSheetByName(SHEET_JOURNAL)) {
-    const sh = ss.insertSheet(SHEET_JOURNAL);
-    sh.getRange(1, 1, 1, JOURNAL_HEADERS.length).setValues([JOURNAL_HEADERS]).setFontWeight('bold');
-    sh.setFrozenRows(1);
-  }
+  initFn(sh);
 }
 
 function getSettings_() {
