@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>モチモチの木 じゆうしんど学しゅう</title>
+<style>
+:root{
+  --bg:#F5FAF6; --text:#20302A; --white:#fff; --line:#d7e3dc;
+  --main:#3E9C6B; --main-d:#2E7A52; --accent:#F0972E; --accent-d:#D07E1C;
+  --muted:#7a8a82; --done:#3E9C6B; --some:#F0972E; --none:#c3cfc8;
+  /* 場面ごとの色 */
+  --s1:#E9524F; --s2:#F0972E; --s3:#F2C438; --s4:#3E9C6B; --s5:#5B8DEF;
+  --parallel:#9B6BD1; --matome:#E86FA6;
+  --shadow:0 3px 0 rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:'Hiragino Maru Gothic ProN','Hiragino Kaku Gothic ProN',system-ui,sans-serif;
+  -webkit-text-size-adjust:100%;}
+button{font-family:inherit;cursor:pointer;}
+ruby rt{font-size:.55em;font-weight:400;}
+.hidden{display:none !important;}
+
+/* ---- ヘッダー ---- */
+.top{background:var(--main);color:#fff;padding:10px 16px;display:flex;
+  align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.top h1{font-size:1.15rem;margin:0;font-weight:800;}
+.top .who{font-size:.85rem;display:flex;align-items:center;gap:8px;}
+.pill{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:20px;
+  padding:6px 14px;font-weight:700;font-size:.8rem;}
+.wrap{max-width:920px;margin:0 auto;padding:16px;}
+
+/* ---- 共通ボタン ---- */
+.btn{border:none;border-radius:14px;padding:14px 22px;font-weight:800;font-size:1rem;
+  color:#fff;background:var(--main);box-shadow:var(--shadow);}
+.btn:active{transform:translateY(2px);box-shadow:none;}
+.btn.big{font-size:1.15rem;padding:16px 26px;width:100%;}
+.btn.accent{background:var(--accent);}
+.btn.ghost{background:#fff;color:var(--main);border:2px solid var(--main);box-shadow:none;}
+.btn.gray{background:#8a9992;}
+.btn:disabled{opacity:.5;box-shadow:none;}
+.backbtn{background:none;border:none;color:var(--main);font-weight:800;font-size:1rem;
+  padding:6px 0;margin-bottom:4px;}
+
+/* ---- ログイン ---- */
+.login-card{background:#fff;border-radius:22px;padding:28px 22px;max-width:460px;margin:6vh auto 0;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);text-align:center;}
+.login-card .tree{font-size:3.2rem;line-height:1;}
+.login-card h2{margin:.4em 0 .2em;font-size:1.35rem;}
+.login-card p{color:var(--muted);margin:.2em 0 1.2em;font-size:.95rem;}
+.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+.name-btn{background:#EEF7F1;border:2px solid var(--line);border-radius:14px;padding:14px 8px;
+  font-size:1.05rem;font-weight:800;color:var(--main-d);}
+.name-btn:active{background:#dcefe3;}
+
+/* ---- 進捗マップ ---- */
+.section-title{font-size:1.1rem;font-weight:800;margin:6px 4px 12px;}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+.card{position:relative;border-radius:18px;padding:16px 14px;color:#fff;min-height:120px;
+  display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow);
+  border:none;text-align:left;}
+.card:active{transform:translateY(2px);}
+.card .cnum{font-size:.8rem;font-weight:700;opacity:.9;}
+.card .cttl{font-size:1.05rem;font-weight:800;margin-top:2px;line-height:1.25;}
+.card .status{align-self:flex-start;margin-top:10px;background:rgba(255,255,255,.28);
+  border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:800;}
+.card .status.done{background:#fff;color:var(--main-d);}
+.card .badge{position:absolute;top:10px;right:12px;font-size:1.3rem;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:4px 4px 14px;font-size:.8rem;color:var(--muted);}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.tip{background:#FFF7E8;border:1px solid #f0d9a8;border-radius:12px;padding:10px 14px;
+  font-size:.85rem;margin:0 4px 14px;color:#8a6a1e;}
+
+/* ---- フォーム ---- */
+.panel{background:#fff;border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;}
+.scene-band{border-radius:14px;color:#fff;padding:12px 16px;font-weight:800;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;}
+.scene-band .n{background:rgba(255,255,255,.3);border-radius:50%;width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;}
+label.field{display:block;margin:14px 0 6px;font-weight:800;font-size:.98rem;}
+label.field .opt{font-weight:600;color:var(--muted);font-size:.8rem;margin-left:6px;}
+.hint{font-size:.82rem;color:var(--muted);margin:2px 0 6px;}
+input[type=text],textarea,select{width:100%;border:2px solid var(--line);border-radius:12px;
+  padding:12px;font-size:1rem;font-family:inherit;background:#fff;}
+textarea{min-height:74px;resize:vertical;line-height:1.5;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--main);}
+.chips{display:flex;gap:10px;flex-wrap:wrap;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:24px;padding:10px 18px;
+  font-weight:800;font-size:1rem;color:var(--text);}
+.chip.on{background:var(--main);color:#fff;border-color:var(--main);}
+.counter{font-size:.8rem;color:var(--muted);text-align:right;margin-top:4px;}
+.counter.warn{color:var(--accent-d);}
+.row-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.row-actions .btn{flex:1;min-width:140px;}
+
+/* ---- 友達の意見 ---- */
+.friend{background:#F3F0FA;border:1px solid #e0d6f2;border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.friend .fname{font-weight:800;color:var(--parallel);font-size:.85rem;}
+.friend .ftrait{font-weight:800;font-size:1.05rem;margin:3px 0;}
+.friend .fev{font-size:.9rem;color:#555;}
+
+/* ---- 記録リスト ---- */
+.rec{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fafdfb;}
+.rec .rhd{font-weight:800;font-size:.95rem;display:flex;justify-content:space-between;gap:8px;}
+.rec .rbd{font-size:.9rem;color:#555;margin-top:4px;}
+.tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:800;color:#fff;}
+
+/* ---- まとめ：呼び出しカード ---- */
+.pick{border:2px dashed var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.92rem;}
+.pick button{border:none;background:var(--main);color:#fff;border-radius:20px;padding:6px 12px;font-weight:800;font-size:.8rem;}
+
+/* ---- スライドプレビュー ---- */
+.slide-stage{background:#0f1a14;border-radius:18px;padding:18px;}
+.slide{aspect-ratio:16/9;border-radius:12px;background:#fff;padding:26px;display:flex;
+  flex-direction:column;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.3);overflow:auto;}
+.slide.s-title{align-items:center;text-align:center;background:linear-gradient(135deg,#3E9C6B,#2E7A52);color:#fff;}
+.slide.s-title .big{font-size:2rem;font-weight:900;margin:.2em 0;}
+.slide.s-title .sub{font-size:1.05rem;opacity:.95;}
+.slide.s-title .lead{font-size:.9rem;letter-spacing:.3em;opacity:.85;}
+.slide h3{margin:0 0 12px;font-size:1.3rem;color:var(--main-d);border-bottom:3px solid var(--accent);
+  padding-bottom:6px;display:inline-block;}
+.slide .kv{margin:6px 0;font-size:1rem;line-height:1.5;}
+.slide .kv b{color:var(--main-d);}
+.slide .body{font-size:1rem;line-height:1.7;white-space:pre-wrap;}
+.slide-nav{display:flex;align-items:center;justify-content:space-between;margin-top:12px;color:#fff;}
+.slide-nav button{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:12px;
+  padding:10px 18px;font-weight:800;font-size:1rem;}
+.slide-nav button:disabled{opacity:.35;}
+.dots{display:flex;gap:8px;}
+.dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);display:inline-block;}
+.dots i.on{background:#fff;}
+
+/* ---- 教員ダッシュボード ---- */
+.tabbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.tabbar button{border:none;background:#fff;border:2px solid var(--line);border-radius:12px;
+  padding:10px 14px;font-weight:800;color:var(--muted);}
+.tabbar button.on{background:var(--main);color:#fff;border-color:var(--main);}
+.tablewrap{overflow-x:auto;background:#fff;border-radius:14px;box-shadow:var(--shadow);}
+table{border-collapse:collapse;width:100%;font-size:.85rem;min-width:520px;}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;white-space:nowrap;}
+th{background:#EEF7F1;font-weight:800;position:sticky;top:0;}
+.cell{width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;color:#fff;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.filters select,.filters input{width:auto;min-width:120px;padding:8px 10px;}
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;
+  background:#fff;border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);}
+.switch{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;}
+
+/* ---- 通知 ---- */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#20302A;color:#fff;
+  padding:12px 22px;border-radius:24px;font-weight:800;z-index:100;box-shadow:0 6px 20px rgba(0,0,0,.3);
+  opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+.loading{text-align:center;color:var(--muted);padding:30px;font-weight:700;}
+
+@media print{
+  .top,.slide-nav,.backbtn,.no-print{display:none !important;}
+  .slide-stage{background:#fff;padding:0;}
+  .slide{box-shadow:none;page-break-after:always;border:1px solid #ccc;}
+}
+@media (max-width:520px){
+  .top h1{font-size:1rem;}
+  .name-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
+}
+</style>
+</head>
+<body>
+
+<header class="top hidden" id="topbar">
+  <h1>🌳 モチモチの<ruby>木<rt>き</rt></ruby></h1>
+  <div class="who">
+    <span id="whoName"></span>
+    <button class="pill" id="logoutBtn">なまえをかえる</button>
+  </div>
+</header>
+
+<div id="app" class="wrap"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+ * API 層： GAS では google.script.run、それ以外（プレビュー）では localStorage モック
+ * ======================================================================= */
+var IS_GAS = (typeof google !== 'undefined' && google.script && google.script.run);
+
+function call(fn, args){
+  args = args || [];
+  return new Promise(function(resolve, reject){
+    if (IS_GAS){
+      var runner = google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(function(e){ reject(e); });
+      runner[fn].apply(runner, args);
+    } else {
+      try { resolve(MOCK[fn].apply(null, args)); }
+      catch(e){ reject(e); }
+    }
+  });
+}
+
+/* ---------- プレビュー用モック（校内では GAS が使われる） ---------- */
+var MOCK = (function(){
+  var KEY='mochimochi_mock';
+  function db(){ return JSON.parse(localStorage.getItem(KEY) || '{"scene":[],"parallel":[],"summary":[],"nameVisible":true}'); }
+  function save(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
+  var scenes=[
+    {no:1,title:'おくびょう豆太',guide:'教科書を読んでから、豆太の様子を書こう。'},
+    {no:2,title:'やい、木ぃ',guide:'教科書を読んでから、豆太の気もちを書こう。'},
+    {no:3,title:'霜月二十日のばん',guide:'教科書を読んでから、この場面の豆太を書こう。'},
+    {no:4,title:'豆太は見た',guide:'教科書を読んでから、豆太の行動を書こう。'},
+    {no:5,title:'弱虫でも、やさしけりゃ',guide:'教科書を読んでから、さいごの豆太を書こう。'}
+  ];
+  var people=['豆太','じさま','医者様'];
+  var works=['花さき山','八郎','三コ','ソメコとオニ','岩じさま'];
+  var roster=[]; for(var i=1;i<=6;i++) roster.push({no:i,name:'（見本）児童'+i});
+  return {
+    getBootstrap:function(){ return {roster:roster,scenes:scenes,scenePeople:people,parallelWorks:works,nameVisible:db().nameVisible}; },
+    getProgress:function(name){ var d=db();var sc={1:0,2:0,3:0,4:0,5:0};d.scene.forEach(function(r){if(r.name===name&&sc[r.scene]!==undefined)sc[r.scene]++;});
+      var pc=0,wk={};d.parallel.forEach(function(r){if(r.name===name){pc++;if(r.work)wk[r.work]=1;}});
+      var sm=MOCK.getSummary(name);return {scenes:sc,parallelCount:pc,parallelWorkCount:Object.keys(wk).length,summaryDone:sm?sm.done:false,summaryStarted:!!sm}; },
+    saveSceneRecord:function(x){ var d=db();d.scene.push({name:x.name,scene:Number(x.scene),person:x.person,trait:x.trait,evidence:x.evidence,reason:x.reason,change:x.change,timestamp:new Date().toISOString()});save(d);return MOCK.getSceneRecords(x.name); },
+    getSceneRecords:function(name){ return db().scene.filter(function(r){return r.name===name;}); },
+    getFriendsOpinions:function(scene,person,my,limit){ var d=db();var p=d.scene.filter(function(r){return Number(r.scene)===Number(scene)&&r.person===person&&r.name!==my&&(r.trait||'').trim();});
+      p.sort(function(){return Math.random()-.5;});return p.slice(0,limit||5).map(function(r){return {name:d.nameVisible?r.name:'ともだち',trait:r.trait,evidence:r.evidence};}); },
+    saveParallelRecord:function(x){ var d=db();d.parallel.push({name:x.name,work:x.work,person:x.person,trait:x.trait,evidence:x.evidence,impression:x.impression,timestamp:new Date().toISOString()});save(d);return MOCK.getParallelRecords(x.name); },
+    getParallelRecords:function(name){ return db().parallel.filter(function(r){return r.name===name;}); },
+    getSummary:function(name){ var s=db().summary.filter(function(r){return r.name===name;});return s.length?s[0]:null; },
+    getSummarySources:function(name){ return {scenes:MOCK.getSceneRecords(name),parallel:MOCK.getParallelRecords(name)}; },
+    saveSummary:function(x){ var d=db();d.summary=d.summary.filter(function(r){return r.name!==x.name;});x.updated=new Date().toISOString();d.summary.push(x);save(d);return x; },
+    setFriendsNameVisible:function(f){ var d=db();d.nameVisible=!!f;save(d);return d.nameVisible; },
+    getTeacherData:function(){ var d=db();
+      var progress=roster.map(function(stu){var sc={1:0,2:0,3:0,4:0,5:0};d.scene.forEach(function(r){if(r.name===stu.name&&sc[r.scene]!==undefined)sc[r.scene]++;});
+        var pc=0,wk={};d.parallel.forEach(function(r){if(r.name===stu.name){pc++;if(r.work)wk[r.work]=1;}});var sm=MOCK.getSummary(stu.name);
+        return {no:stu.no,name:stu.name,scenes:sc,parallelCount:pc,parallelWorks:Object.keys(wk),summaryStarted:!!sm,summaryDone:sm?sm.done:false,summaryPerson:sm?sm.person:''};});
+      return {scenes:scenes,scenePeople:people,progress:progress,
+        sceneRecords:d.scene.map(function(r){return {timestamp:'',name:r.name,scene:r.scene,person:r.person,trait:r.trait,evidence:r.evidence,reason:r.reason,change:r.change};}),
+        parallelRecords:d.parallel.map(function(r){return {timestamp:'',name:r.name,work:r.work,person:r.person,trait:r.trait,evidence:r.evidence,impression:r.impression};}),
+        summaries:d.summary,nameVisible:d.nameVisible}; }
+  };
+})();
+
+/* =========================================================================
+ * 状態
+ * ======================================================================= */
+var BOOT = null;               // {roster,scenes,scenePeople,parallelWorks,nameVisible}
+var USER = null;               // 児童氏名
+var INITIAL_VIEW = 'student';  // GAS が差し込む（下部スクリプトで上書き）
+var sceneColors = ['','var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)'];
+
+var app = document.getElementById('app');
+var topbar = document.getElementById('topbar');
+
+/* ---- 起動 ---- */
+window.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  showLoading('よみこみ中…');
+  call('getBootstrap').then(function(b){
+    BOOT = b;
+    if (INITIAL_VIEW === 'teacher'){ renderTeacher(); return; }
+    var saved = sessionStorage.getItem('mm_user');
+    if (saved && b.roster.some(function(r){return r.name===saved;})){ USER = saved; goHome(); }
+    else renderLogin();
+  }).catch(showError);
+});
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function showLoading(m){ app.innerHTML='<div class="loading">'+esc(m||'…')+'</div>'; }
+function showError(e){ toast('エラー：'+(e&&e.message?e.message:e), true); }
+function toast(msg, isErr){
+  var t=document.getElementById('toast'); t.textContent=msg;
+  t.style.background = isErr ? '#C0392B' : '#20302A';
+  t.classList.add('show'); setTimeout(function(){t.classList.remove('show');}, 2200);
+}
+function setHeader(show){ topbar.classList.toggle('hidden', !show); document.getElementById('whoName').textContent = USER ? ('👦 '+USER+' さん') : ''; }
+function logout(){ USER=null; sessionStorage.removeItem('mm_user'); renderLogin(); }
+
+/* =========================================================================
+ * ① ログイン
+ * ======================================================================= */
+function renderLogin(){
+  setHeader(false);
+  var names = BOOT.roster;
+  var html = '<div class="login-card"><div class="tree">🌳</div>'+
+    '<h2><ruby>名前<rt>なまえ</rt></ruby>をえらんでね</h2>'+
+    '<p>じぶんの名前のボタンをおしてはじめよう</p><div class="name-grid">';
+  if(!names.length){ html += '<p>名簿シートに名前を入力してください。</p>'; }
+  names.forEach(function(r){ html += '<button class="name-btn" data-name="'+esc(r.name)+'">'+esc(r.name)+'</button>'; });
+  html += '</div></div>';
+  app.innerHTML = html;
+  Array.prototype.forEach.call(app.querySelectorAll('.name-btn'), function(b){
+    b.addEventListener('click', function(){ USER=b.dataset.name; sessionStorage.setItem('mm_user',USER); goHome(); });
+  });
+}
+
+/* =========================================================================
+ * ② 進捗マップ（ホーム）
+ * ======================================================================= */
+function goHome(){
+  setHeader(true);
+  showLoading('よみこみ中…');
+  call('getProgress',[USER]).then(renderHome).catch(showError);
+}
+
+function statusOf(count){ return count>0 ? {label:'きろくあり', cls:'', badge:'✏️'} : {label:'みちゃくしゅ', cls:'', badge:''}; }
+
+function renderHome(prog){
+  setHeader(true);
+  var html = '<div class="section-title">📍 いまのすすみ　<span style="font-weight:600;color:var(--muted);font-size:.85rem;">すきな じゅんばんで すすめよう</span></div>';
+  html += '<div class="legend">'+
+    '<span><i class="dot" style="background:var(--none)"></i>みちゃくしゅ</span>'+
+    '<span><i class="dot" style="background:var(--some)"></i>きろくあり</span>'+
+    '<span><i class="dot" style="background:var(--done)"></i>かんせい</span></div>';
+  html += '<div class="tip">💡 <ruby>場面<rt>ばめん</rt></ruby>一〜五は、モチモチの木を <b>じゅんばんに</b> 読みながらすすめるのがおすすめだよ。</div>';
+  html += '<div class="map-grid">';
+
+  // 場面カード
+  BOOT.scenes.forEach(function(s){
+    var cnt = prog.scenes[s.no] || 0;
+    var st = statusOf(cnt);
+    html += cardHtml('scene-'+s.no, sceneColors[s.no], '場面 '+numKanji(s.no), s.title, cnt>0?('きろく '+cnt+'こ'):'みちゃくしゅ', cnt>0, cnt>0?'✏️':'');
+  });
+  // 並行読書
+  var pc = prog.parallelCount||0;
+  html += cardHtml('parallel', 'var(--parallel)', 'へいこう読書', '本をよんで きろく', pc>0?('きろく '+pc+'こ'):'みちゃくしゅ', pc>0, pc>0?'📚':'');
+  // まとめ
+  var mLabel = prog.summaryDone ? 'かんせい！' : (prog.summaryStarted ? 'さくせい中' : 'みちゃくしゅ');
+  html += cardHtml('summary', 'var(--matome)', 'まとめ・はっぴょう', 'イチオシ<ruby>登場<rt>とうじょう</rt>人ぶつスライド', mLabel, prog.summaryDone, prog.summaryDone?'⭐':(prog.summaryStarted?'✏️':''));
+
+  html += '</div>';
+  app.innerHTML = html;
+
+  Array.prototype.forEach.call(app.querySelectorAll('.card'), function(c){
+    c.addEventListener('click', function(){ routeCard(c.dataset.route); });
+  });
+}
+
+function cardHtml(route, color, cnum, ctitle, statusLabel, done, badge){
+  return '<button class="card" data-route="'+route+'" style="background:'+color+'">'+
+    (badge?'<span class="badge">'+badge+'</span>':'')+
+    '<div><div class="cnum">'+cnum+'</div><div class="cttl">'+ctitle+'</div></div>'+
+    '<span class="status'+(done?' done':'')+'">'+statusLabel+'</span></button>';
+}
+
+function routeCard(route){
+  if(route.indexOf('scene-')===0){ renderScene(Number(route.split('-')[1])); }
+  else if(route==='parallel'){ renderParallel(); }
+  else if(route==='summary'){ renderSummary(); }
+}
+
+function numKanji(n){ return ['','一','二','三','四','五'][n] || n; }
+
+/* =========================================================================
+ * ③ 場面学習カード
+ * ======================================================================= */
+function renderScene(no){
+  var meta = BOOT.scenes.filter(function(s){return s.no===no;})[0];
+  var color = sceneColors[no];
+  showLoading('よみこみ中…');
+  call('getSceneRecords',[USER]).then(function(recs){
+    var mine = recs.filter(function(r){return Number(r.scene)===no;});
+    var html = '<button class="backbtn" onclick="goHome()">← すすみマップにもどる</button>';
+    html += '<div class="scene-band" style="background:'+color+'"><span class="n">'+numKanji(no)+'</span>'+
+      '<span><ruby>場面<rt>ばめん</rt></ruby> '+numKanji(no)+'　'+esc(meta.title)+'</span></div>';
+    html += '<div class="panel">';
+    html += '<div class="hint">📖 '+esc(meta.guide)+'　<b>※本文はうつしません。教科書を見ながら自分で書こう。</b></div>';
+
+    // 対象人物
+    html += '<label class="field">だれについて 書く？</label><div class="chips" id="personChips">';
+    BOOT.scenePeople.forEach(function(p){ html += '<button type="button" class="chip" data-p="'+esc(p)+'">'+esc(p)+'</button>'; });
+    html += '</div>';
+
+    // 性格
+    html += '<label class="field">この場面の 性格・気もちを ひとことで</label>'+
+      '<input type="text" id="trait" maxlength="30" placeholder="れい：おくびょう / ゆうきがある">';
+    // 根拠
+    html += '<label class="field">そう思った わけの文<span class="opt">（教科書からじぶんで書きうつす）</span></label>'+
+      '<div class="hint">教科書の文を見ながら、自分でうつして書こう。</div>'+
+      '<textarea id="evidence" placeholder="教科書の文をここに書こう"></textarea>';
+    // 理由
+    html += '<label class="field">ひとこと りゆう<span class="opt">（なくてもOK）</span></label>'+
+      '<input type="text" id="reason" maxlength="60" placeholder="なぜそう思ったかな？">';
+    // 変化（場面3以降）
+    if(no>=3){
+      html += '<label class="field">前の場面と くらべて どう かわった？<span class="opt">（なくてもOK）</span></label>'+
+        '<textarea id="change" placeholder="まえの豆太とくらべてみよう"></textarea>';
+    }
+    html += '<div class="row-actions"><button class="btn big" id="saveScene">✓ ていしゅつする</button></div>';
+    html += '</div>';
+
+    // 自分の記録
+    html += '<div id="mineWrap">'+mineHtml(mine)+'</div>';
+    // 友達の意見エリア（提出後に出す）
+    html += '<div id="friendsWrap"></div>';
+
+    app.innerHTML = html;
+
+    var selPerson = null;
+    Array.prototype.forEach.call(app.querySelectorAll('#personChips .chip'), function(ch){
+      ch.addEventListener('click', function(){
+        Array.prototype.forEach.call(app.querySelectorAll('#personChips .chip'), function(x){x.classList.remove('on');});
+        ch.classList.add('on'); selPerson = ch.dataset.p;
+      });
+    });
+
+    document.getElementById('saveScene').addEventListener('click', function(){
+      var trait = document.getElementById('trait').value.trim();
+      if(!selPerson){ toast('だれについて 書くか えらんでね', true); return; }
+      if(!trait){ toast('性格・気もちを 書いてね', true); return; }
+      var data = { name:USER, scene:no, person:selPerson, trait:trait,
+        evidence:document.getElementById('evidence').value.trim(),
+        reason:document.getElementById('reason').value.trim(),
+        change: no>=3 ? document.getElementById('change').value.trim() : '' };
+      var btn=this; btn.disabled=true; btn.textContent='ほぞん中…';
+      call('saveSceneRecord',[data]).then(function(all){
+        toast('ていしゅつしたよ！ 🎉');
+        var mine2 = all.filter(function(r){return Number(r.scene)===no;});
+        document.getElementById('mineWrap').innerHTML = mineHtml(mine2);
+        // 入力クリア
+        document.getElementById('trait').value=''; document.getElementById('evidence').value='';
+        document.getElementById('reason').value=''; if(no>=3) document.getElementById('change').value='';
+        Array.prototype.forEach.call(app.querySelectorAll('#personChips .chip'), function(x){x.classList.remove('on');});
+        selPerson=null; btn.disabled=false; btn.textContent='✓ ていしゅつする';
+        showFriends(no, data.person);
+      }).catch(function(e){ btn.disabled=false; btn.textContent='✓ ていしゅつする'; showError(e); });
+    });
+  }).catch(showError);
+}
+
+function mineHtml(mine){
+  if(!mine.length) return '';
+  var h = '<div class="section-title" style="font-size:1rem;">✏️ じぶんの きろく</div>';
+  mine.forEach(function(r){
+    h += '<div class="rec"><div class="rhd"><span>'+esc(r.person)+'：'+esc(r.trait)+'</span></div>'+
+      (r.evidence?'<div class="rbd">📖 '+esc(r.evidence)+'</div>':'')+
+      (r.reason?'<div class="rbd">💭 '+esc(r.reason)+'</div>':'')+
+      (r.change?'<div class="rbd">🔄 '+esc(r.change)+'</div>':'')+'</div>';
+  });
+  return h;
+}
+
+function showFriends(no, person){
+  var wrap = document.getElementById('friendsWrap');
+  wrap.innerHTML = '<div class="panel no-print"><div class="loading">ともだちの いけんを さがし中…</div></div>';
+  call('getFriendsOpinions',[no, person, USER, 5]).then(function(list){
+    var h = '<div class="panel no-print"><div class="section-title" style="font-size:1rem;">👀 ともだちの いけん（'+esc(person)+'）</div>';
+    if(!list.length){ h += '<p class="hint">まだ ともだちの きろくが ないよ。いちばんのりだね！</p>'; }
+    list.forEach(function(f){
+      h += '<div class="friend"><div class="fname">'+esc(f.name)+'</div>'+
+        '<div class="ftrait">'+esc(f.trait)+'</div>'+
+        (f.evidence?'<div class="fev">📖 '+esc(f.evidence)+'</div>':'')+'</div>';
+    });
+    h += '<button class="btn ghost" onclick="document.getElementById(\'friendsWrap\').innerHTML=\'\'">とじる</button></div>';
+    wrap.innerHTML = h;
+    wrap.scrollIntoView({behavior:'smooth', block:'start'});
+  }).catch(showError);
+}
+
+/* =========================================================================
+ * ④ 並行読書記録
+ * ======================================================================= */
+function renderParallel(){
+  showLoading('よみこみ中…');
+  call('getParallelRecords',[USER]).then(function(recs){
+    var html = '<button class="backbtn" onclick="goHome()">← すすみマップにもどる</button>';
+    html += '<div class="scene-band" style="background:var(--parallel)"><span class="n">📚</span>'+
+      '<span><ruby>並行<rt>へいこう</rt></ruby>読書の きろく</span></div>';
+    html += '<div class="panel">';
+    html += '<div class="hint">さいとう隆介さんの ほかの本を よんで、すきな人ぶつを きろくしよう。</div>';
+    html += '<label class="field">作品名（本のなまえ）</label>'+
+      '<select id="workSel"><option value="">— えらぶ —</option>';
+    BOOT.parallelWorks.forEach(function(w){ html += '<option value="'+esc(w)+'">'+esc(w)+'</option>'; });
+    html += '<option value="__other">その他（じぶんで書く）</option></select>'+
+      '<input type="text" id="workOther" class="hidden" style="margin-top:8px" placeholder="本のなまえを書こう">';
+    html += '<label class="field"><ruby>登場<rt>とうじょう</rt></ruby>人ぶつの なまえ</label>'+
+      '<input type="text" id="pPerson" maxlength="30" placeholder="すきな人ぶつ">';
+    html += '<label class="field">性格・気もちを ひとことで</label>'+
+      '<input type="text" id="pTrait" maxlength="30" placeholder="れい：やさしい / つよい">';
+    html += '<label class="field">そう思った わけの文<span class="opt">（本を見て自分で書く）</span></label>'+
+      '<textarea id="pEvidence" placeholder="本の文をここに書こう"></textarea>';
+    html += '<label class="field">かんそう<span class="opt">（なくてもOK）</span></label>'+
+      '<textarea id="pImp" placeholder="どう思った？"></textarea>';
+    html += '<div class="row-actions"><button class="btn big" id="saveParallel">✓ きろくする</button></div>';
+    html += '</div>';
+    html += '<div id="pList">'+parallelListHtml(recs)+'</div>';
+    app.innerHTML = html;
+
+    var sel=document.getElementById('workSel'), other=document.getElementById('workOther');
+    sel.addEventListener('change', function(){ other.classList.toggle('hidden', sel.value!=='__other'); });
+
+    document.getElementById('saveParallel').addEventListener('click', function(){
+      var work = sel.value==='__other' ? other.value.trim() : sel.value;
+      var person=document.getElementById('pPerson').value.trim();
+      var trait=document.getElementById('pTrait').value.trim();
+      if(!work){ toast('本のなまえを えらんでね', true); return; }
+      if(!person){ toast('人ぶつの なまえを 書いてね', true); return; }
+      var data={ name:USER, work:work, person:person, trait:trait,
+        evidence:document.getElementById('pEvidence').value.trim(),
+        impression:document.getElementById('pImp').value.trim() };
+      var btn=this; btn.disabled=true; btn.textContent='ほぞん中…';
+      call('saveParallelRecord',[data]).then(function(all){
+        toast('きろくしたよ！ 📚');
+        document.getElementById('pList').innerHTML = parallelListHtml(all);
+        sel.value=''; other.value=''; other.classList.add('hidden');
+        document.getElementById('pPerson').value=''; document.getElementById('pTrait').value='';
+        document.getElementById('pEvidence').value=''; document.getElementById('pImp').value='';
+        btn.disabled=false; btn.textContent='✓ きろくする';
+      }).catch(function(e){ btn.disabled=false; btn.textContent='✓ きろくする'; showError(e); });
+    });
+  }).catch(showError);
+}
+
+function parallelListHtml(recs){
+  if(!recs.length) return '';
+  var h='<div class="section-title" style="font-size:1rem;">📚 これまでの きろく（'+recs.length+'さつ）</div>';
+  recs.forEach(function(r){
+    h += '<div class="rec"><div class="rhd"><span>'+esc(r.person)+'（'+esc(r.work)+'）</span>'+
+      '<span class="tag" style="background:var(--parallel)">'+esc(r.trait||'—')+'</span></div>'+
+      (r.evidence?'<div class="rbd">📖 '+esc(r.evidence)+'</div>':'')+
+      (r.impression?'<div class="rbd">💭 '+esc(r.impression)+'</div>':'')+'</div>';
+  });
+  return h;
+}
+
+/* =========================================================================
+ * ⑤ まとめ・発表準備（イチオシの登場人物スライド）
+ * ======================================================================= */
+var SUM = null;      // 現在の入力内容
+var SRC = null;      // 呼び出し元記録 {scenes,parallel}
+
+function renderSummary(){
+  showLoading('よみこみ中…');
+  Promise.all([call('getSummary',[USER]), call('getSummarySources',[USER])]).then(function(res){
+    var saved = res[0]; SRC = res[1];
+    SUM = saved || { name:USER, person:'', source:'', story:'', profile:'', traitSummary:'', done:false };
+    drawSummary();
+  }).catch(showError);
+}
+
+function drawSummary(){
+  var html = '<button class="backbtn" onclick="goHome()">← すすみマップにもどる</button>';
+  html += '<div class="scene-band" style="background:var(--matome)"><span class="n">⭐</span>'+
+    '<span>イチオシの<ruby>登場<rt>とうじょう</rt></ruby>人ぶつスライド</span></div>';
+
+  // 人物選択
+  html += '<div class="panel"><label class="field">① だれを しょうかいする？</label>';
+  html += '<div class="hint">モチモチの木、または へいこう読書の人ぶつから 1人えらぼう。えらぶと きろくを 下に よびだすよ。</div>';
+  html += '<div class="chips" id="mochiChips">';
+  BOOT.scenePeople.forEach(function(p){
+    var on = SUM.person===p && SUM.source==='モチモチの木';
+    html += '<button type="button" class="chip'+(on?' on':'')+'" data-src="モチモチの木" data-p="'+esc(p)+'">'+esc(p)+'</button>';
+  });
+  html += '</div>';
+  // 並行読書の人物
+  var pp = uniqueParallel(SRC.parallel);
+  if(pp.length){
+    html += '<div class="hint" style="margin-top:12px;">へいこう読書から：</div><div class="chips" id="parChips">';
+    pp.forEach(function(o){
+      var on = SUM.person===o.person && SUM.source===o.work;
+      html += '<button type="button" class="chip'+(on?' on':'')+'" data-src="'+esc(o.work)+'" data-p="'+esc(o.person)+'">'+esc(o.person)+'<span style="font-weight:600;font-size:.75rem;">（'+esc(o.work)+'）</span></button>';
+    });
+    html += '</div>';
+  }
+  html += '<div id="sourceRecs" style="margin-top:12px;"></div>';
+  html += '</div>';
+
+  // あらすじ
+  html += '<div class="panel"><label class="field">② あらすじ</label>'+
+    '<div class="hint">お話の すじを みじかく まとめよう（100〜150字ぐらい）</div>'+
+    '<textarea id="sStory" oninput="countChars(this,\'storyCount\',100,150)" placeholder="どんなお話かな？">'+esc(SUM.story)+'</textarea>'+
+    '<div class="counter" id="storyCount"></div></div>';
+
+  // プロフィール
+  html += '<div class="panel"><label class="field">③ プロフィール<span class="opt">（わかるところだけでOK）</span></label>'+
+    '<div class="hint">年れい・かぞく・すんでいる場しょ・すきなもの など。教科書に書いてあることを もとに 書こう。</div>'+
+    '<textarea id="sProfile" placeholder="れい：\n年れい：〇さい\nかぞく：\nすんでいる場しょ：\nすきなもの：">'+esc(SUM.profile)+'</textarea></div>';
+
+  // 性格まとめ
+  html += '<div class="panel"><label class="field">④ 性格の まとめ文</label>'+
+    '<div class="hint">上の きろくを さんこうに、性格を せつめいする文を つくろう。</div>'+
+    '<textarea id="sTrait" placeholder="どんな性格の人ぶつかな？" style="min-height:100px">'+esc(SUM.traitSummary)+'</textarea></div>';
+
+  html += '<div class="row-actions no-print">'+
+    '<button class="btn accent" id="previewBtn">🖥 スライドを見る</button>'+
+    '<button class="btn ghost" id="saveDraft">とちゅうほぞん</button>'+
+    '<button class="btn" id="saveDone">⭐ かんせい！</button></div>';
+  html += '<div id="slideArea" style="margin-top:16px;"></div>';
+
+  app.innerHTML = html;
+
+  // 人物チップ
+  function bindChips(id){
+    var box=document.getElementById(id); if(!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll('.chip'), function(ch){
+      ch.addEventListener('click', function(){
+        Array.prototype.forEach.call(app.querySelectorAll('#mochiChips .chip,#parChips .chip'), function(x){x.classList.remove('on');});
+        ch.classList.add('on'); SUM.person=ch.dataset.p; SUM.source=ch.dataset.src;
+        showSourceRecs();
+      });
+    });
+  }
+  bindChips('mochiChips'); bindChips('parChips');
+  if(SUM.person) showSourceRecs();
+  countChars(document.getElementById('sStory'),'storyCount',100,150);
+
+  document.getElementById('previewBtn').addEventListener('click', function(){ collect(); showSlides(); });
+  document.getElementById('saveDraft').addEventListener('click', function(){ persist(false); });
+  document.getElementById('saveDone').addEventListener('click', function(){ persist(true); });
+}
+
+function uniqueParallel(list){
+  var seen={}, out=[];
+  list.forEach(function(r){ var k=r.person+'|'+r.work; if(!seen[k]){seen[k]=1; out.push({person:r.person,work:r.work});} });
+  return out;
+}
+
+function showSourceRecs(){
+  var box=document.getElementById('sourceRecs'); if(!box) return;
+  var h='';
+  if(SUM.source==='モチモチの木'){
+    var mine = SRC.scenes.filter(function(r){return r.person===SUM.person;})
+      .sort(function(a,b){return Number(a.scene)-Number(b.scene);});
+    if(!mine.length){ box.innerHTML='<div class="hint">'+esc(SUM.person)+'の 場面きろくが まだ ないよ。場面カードで きろくしてから もどってこよう。</div>'; return; }
+    h='<div class="section-title" style="font-size:.95rem;">📋 '+esc(SUM.person)+'の 場面きろく（タップで 下の文に コピー）</div>';
+    mine.forEach(function(r){
+      var copyText = r.trait + (r.evidence?('（'+r.evidence+'）'):'');
+      h += recPickHtml('場面'+numKanji(r.scene)+'：'+r.trait, r.evidence, copyText);
+    });
+  } else {
+    var mp = SRC.parallel.filter(function(r){return r.person===SUM.person && r.work===SUM.source;});
+    if(!mp.length){ box.innerHTML=''; return; }
+    h='<div class="section-title" style="font-size:.95rem;">📋 '+esc(SUM.person)+'の きろく（タップで コピー）</div>';
+    mp.forEach(function(r){
+      var copyText = r.trait + (r.evidence?('（'+r.evidence+'）'):'');
+      h += recPickHtml(r.trait, r.evidence, copyText);
+      if(r.impression) h += recPickHtml('かんそう：'+r.impression, '', r.impression);
+    });
+  }
+  box.innerHTML=h;
+  Array.prototype.forEach.call(box.querySelectorAll('.pick button'), function(b){
+    b.addEventListener('click', function(){
+      var ta=document.getElementById('sTrait');
+      ta.value = (ta.value.trim() ? ta.value.trim()+'\n' : '') + b.dataset.copy;
+      toast('性格まとめ文に コピーしたよ');
+    });
+  });
+}
+
+function recPickHtml(label, sub, copyText){
+  return '<div class="pick"><span>'+esc(label)+(sub?'<br><span style="color:#777;font-size:.85rem;">📖 '+esc(sub)+'</span>':'')+
+    '</span><button type="button" data-copy="'+esc(copyText)+'">つかう</button></div>';
+}
+
+function countChars(el, targetId, min, max){
+  if(!el) return; var t=document.getElementById(targetId); if(!t) return;
+  var n=el.value.trim().length;
+  t.textContent = n+' 字' + (min?('　（めやす '+min+'〜'+max+'字）'):'');
+  t.className = 'counter' + ((min && (n<min || n>max)) ? ' warn' : '');
+}
+
+function collect(){
+  SUM.story=document.getElementById('sStory').value.trim();
+  SUM.profile=document.getElementById('sProfile').value.trim();
+  SUM.traitSummary=document.getElementById('sTrait').value.trim();
+}
+
+function persist(done){
+  collect();
+  if(!SUM.person){ toast('だれを しょうかいするか えらんでね', true); return; }
+  if(done && !SUM.story){ toast('あらすじを 書いてから かんせいしよう', true); return; }
+  SUM.done = done; SUM.name = USER;
+  call('saveSummary',[SUM]).then(function(){
+    toast(done ? 'かんせい！ おつかれさま ⭐' : 'ほぞんしたよ');
+    if(done) setTimeout(goHome, 900);
+  }).catch(showError);
+}
+
+/* ---- 簡易スライドプレビュー ---- */
+var slideIdx = 0;
+function showSlides(){
+  if(!SUM.person){ toast('だれを しょうかいするか えらんでね', true); return; }
+  slideIdx = 0;
+  var area=document.getElementById('slideArea');
+  area.innerHTML='<div class="slide-stage"><div id="slideBox"></div>'+
+    '<div class="slide-nav"><button id="prevS">← まえ</button>'+
+    '<div class="dots"><i></i><i></i><i></i></div>'+
+    '<button id="nextS">つぎ →</button></div>'+
+    '<div class="no-print" style="text-align:center;margin-top:10px;">'+
+    '<button class="btn ghost" onclick="window.print()">🖨 いんさつ / PDF</button></div></div>';
+  document.getElementById('prevS').addEventListener('click', function(){ if(slideIdx>0){slideIdx--; paintSlide();} });
+  document.getElementById('nextS').addEventListener('click', function(){ if(slideIdx<2){slideIdx++; paintSlide();} });
+  paintSlide();
+  area.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function paintSlide(){
+  var box=document.getElementById('slideBox');
+  var s=SUM; var html='';
+  if(slideIdx===0){
+    html='<div class="slide s-title"><div class="lead">イチオシの登場人物</div>'+
+      '<div class="big">'+esc(s.person||'？')+'</div>'+
+      '<div class="sub">『'+esc(s.source||'？')+'』より</div>'+
+      '<div style="margin-top:16px;font-size:.85rem;opacity:.85;">'+esc(USER)+'</div></div>';
+  } else if(slideIdx===1){
+    html='<div class="slide"><h3>プロフィール</h3>';
+    if(s.profile){ html+='<div class="body">'+esc(s.profile)+'</div>'; }
+    else { html+='<div class="kv" style="color:#999">（プロフィールを 入力してね）</div>'; }
+    if(s.story){ html+='<div class="kv" style="margin-top:14px;"><b>あらすじ</b></div><div class="body">'+esc(s.story)+'</div>'; }
+    html+='</div>';
+  } else {
+    html='<div class="slide"><h3>性格と そのわけ</h3>';
+    html+= s.traitSummary ? '<div class="body">'+esc(s.traitSummary)+'</div>' : '<div class="kv" style="color:#999">（性格まとめ文を 入力してね）</div>';
+    html+='</div>';
+  }
+  box.innerHTML=html;
+  var dots=document.querySelectorAll('.dots i');
+  dots.forEach(function(d,i){ d.classList.toggle('on', i===slideIdx); });
+  document.getElementById('prevS').disabled = slideIdx===0;
+  document.getElementById('nextS').disabled = slideIdx===2;
+}
+
+/* =========================================================================
+ * ⑥ 教員ダッシュボード
+ * ======================================================================= */
+var TDATA = null, tTab='progress';
+function renderTeacher(){
+  setHeader(false);
+  showLoading('よみこみ中…');
+  call('getTeacherData').then(function(d){ TDATA=d; drawTeacher(); }).catch(showError);
+}
+
+function drawTeacher(){
+  var d=TDATA;
+  var html='<div class="section-title">👩‍🏫 先生用ダッシュボード</div>';
+  html+='<div class="toolbar no-print"><label class="switch"><input type="checkbox" id="nameVis" '+(d.nameVisible?'checked':'')+'> 「友達の意見」で氏名を表示する</label>'+
+    '<button class="btn ghost" id="reload">🔄 さいしんに更新</button></div>';
+  html+='<div class="tabbar no-print">'+
+    tabBtn('progress','進捗一覧')+tabBtn('scene','場面記録')+tabBtn('parallel','並行読書')+tabBtn('summary','まとめ完成状況')+'</div>';
+  html+='<div id="tbody"></div>';
+  app.innerHTML=html;
+  document.getElementById('reload').addEventListener('click', renderTeacher);
+  document.getElementById('nameVis').addEventListener('change', function(){
+    call('setFriendsNameVisible',[this.checked]).then(function(v){ toast(v?'氏名を表示します':'氏名を非表示にしました'); });
+  });
+  Array.prototype.forEach.call(app.querySelectorAll('.tabbar button'), function(b){
+    b.addEventListener('click', function(){ tTab=b.dataset.t; drawTeacherTab(); updateTabs(); });
+  });
+  updateTabs(); drawTeacherTab();
+}
+function tabBtn(id,label){ return '<button data-t="'+id+'">'+label+'</button>'; }
+function updateTabs(){ Array.prototype.forEach.call(app.querySelectorAll('.tabbar button'), function(b){ b.classList.toggle('on', b.dataset.t===tTab); }); }
+
+function drawTeacherTab(){
+  var d=TDATA, box=document.getElementById('tbody');
+  if(tTab==='progress') box.innerHTML = teacherProgress(d);
+  else if(tTab==='scene') box.innerHTML = teacherScene(d);
+  else if(tTab==='parallel') box.innerHTML = teacherParallel(d);
+  else box.innerHTML = teacherSummary(d);
+  if(tTab==='scene') bindSceneFilter();
+}
+
+function cellColor(n){ return n>0 ? 'var(--some)' : 'var(--none)'; }
+function teacherProgress(d){
+  var h='<div class="tablewrap"><table><thead><tr><th>番</th><th>氏名</th>';
+  d.scenes.forEach(function(s){ h+='<th>場'+numKanji(s.no)+'</th>'; });
+  h+='<th>並行</th><th>まとめ</th></tr></thead><tbody>';
+  d.progress.forEach(function(p){
+    h+='<tr><td>'+esc(p.no)+'</td><td>'+esc(p.name)+'</td>';
+    d.scenes.forEach(function(s){ var n=p.scenes[s.no]||0; h+='<td><span class="cell" style="background:'+cellColor(n)+'">'+(n||'')+'</span></td>'; });
+    h+='<td><span class="cell" style="background:'+cellColor(p.parallelCount)+'">'+(p.parallelCount||'')+'</span></td>';
+    var mc = p.summaryDone?'var(--done)':(p.summaryStarted?'var(--some)':'var(--none)');
+    var ml = p.summaryDone?'完':(p.summaryStarted?'作':'');
+    h+='<td><span class="cell" style="background:'+mc+'">'+ml+'</span>'+(p.summaryPerson?' <small>'+esc(p.summaryPerson)+'</small>':'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function teacherScene(d){
+  var h='<div class="filters no-print"><select id="fPerson"><option value="">人物：すべて</option>';
+  d.scenePeople.forEach(function(p){ h+='<option>'+esc(p)+'</option>'; });
+  h+='</select><select id="fScene"><option value="">場面：すべて</option>';
+  d.scenes.forEach(function(s){ h+='<option value="'+s.no+'">場面'+numKanji(s.no)+'</option>'; });
+  h+='</select><input type="text" id="fTrait" placeholder="性格語でしぼりこみ"></div>';
+  h+='<div id="sceneTable"></div>';
+  return h;
+}
+function bindSceneFilter(){
+  ['fPerson','fScene','fTrait'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.addEventListener('input', renderSceneTable);
+  });
+  renderSceneTable();
+}
+function renderSceneTable(){
+  var d=TDATA;
+  var fp=(document.getElementById('fPerson')||{}).value||'';
+  var fs=(document.getElementById('fScene')||{}).value||'';
+  var ft=((document.getElementById('fTrait')||{}).value||'').trim();
+  var rows=d.sceneRecords.filter(function(r){
+    if(fp && r.person!==fp) return false;
+    if(fs && Number(r.scene)!==Number(fs)) return false;
+    if(ft && String(r.trait||'').indexOf(ft)<0) return false;
+    return true;
+  });
+  var h='<div class="tablewrap"><table><thead><tr><th>場</th><th>氏名</th><th>人物</th><th>性格語</th><th>根拠文</th><th>理由</th><th>変化</th></tr></thead><tbody>';
+  if(!rows.length) h+='<tr><td colspan="7" style="color:#999">記録がありません</td></tr>';
+  rows.forEach(function(r){
+    h+='<tr><td>'+numKanji(r.scene)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.person)+'</td>'+
+      '<td><b>'+esc(r.trait)+'</b></td><td style="white-space:normal;max-width:260px">'+esc(r.evidence)+'</td>'+
+      '<td style="white-space:normal">'+esc(r.reason)+'</td><td style="white-space:normal">'+esc(r.change)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('sceneTable').innerHTML=h;
+}
+
+function teacherParallel(d){
+  // 誰が何冊、どの作品
+  var byName={};
+  d.parallelRecords.forEach(function(r){ (byName[r.name]=byName[r.name]||[]).push(r); });
+  var h='<div class="tablewrap"><table><thead><tr><th>氏名</th><th>冊数</th><th>作品</th></tr></thead><tbody>';
+  d.progress.forEach(function(p){
+    var list=byName[p.name]||[];
+    var works={}; list.forEach(function(r){works[r.work]=1;});
+    h+='<tr><td>'+esc(p.name)+'</td><td><span class="cell" style="background:'+cellColor(list.length)+'">'+(list.length||'')+'</span></td>'+
+      '<td style="white-space:normal">'+esc(Object.keys(works).join('、'))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="section-title" style="font-size:1rem;margin-top:16px;">記録の一覧</div>';
+  h+='<div class="tablewrap"><table><thead><tr><th>氏名</th><th>作品</th><th>人物</th><th>性格語</th><th>根拠文</th><th>感想</th></tr></thead><tbody>';
+  if(!d.parallelRecords.length) h+='<tr><td colspan="6" style="color:#999">記録がありません</td></tr>';
+  d.parallelRecords.forEach(function(r){
+    h+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.work)+'</td><td>'+esc(r.person)+'</td><td><b>'+esc(r.trait)+'</b></td>'+
+      '<td style="white-space:normal;max-width:240px">'+esc(r.evidence)+'</td><td style="white-space:normal">'+esc(r.impression)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function teacherSummary(d){
+  var h='<div class="tablewrap"><table><thead><tr><th>状態</th><th>氏名</th><th>イチオシ人物</th><th>出典</th><th>あらすじ</th><th>性格まとめ</th><th>更新</th></tr></thead><tbody>';
+  var done=0;
+  var names={}; d.summaries.forEach(function(s){names[s.name]=s;});
+  d.progress.forEach(function(p){
+    var s=names[p.name];
+    if(!s){ h+='<tr><td><span class="cell" style="background:var(--none)"></span></td><td>'+esc(p.name)+'</td><td colspan="5" style="color:#999">みちゃくしゅ</td></tr>'; return; }
+    if(s.done) done++;
+    var c=s.done?'var(--done)':'var(--some)', l=s.done?'完':'作';
+    h+='<tr><td><span class="cell" style="background:'+c+'">'+l+'</span></td><td>'+esc(s.name)+'</td>'+
+      '<td>'+esc(s.person)+'</td><td>'+esc(s.source)+'</td>'+
+      '<td style="white-space:normal;max-width:240px">'+esc(s.story)+'</td>'+
+      '<td style="white-space:normal;max-width:240px">'+esc(s.traitSummary)+'</td><td>'+esc(s.updated||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="tip" style="margin-top:12px;">かんせい：'+done+' 人 / '+d.progress.length+' 人</div>';
+  return h;
+}
+</script>
+
+<script>
+/* GAS の HtmlService テンプレートが view の値を差し込む。
+   プレビュー（素のブラウザ）では下の文字列がそのまま入るが、
+   'teacher'/'student' 以外なので既定の student ビューになる。 */
+(function(){ var v="<?= initialView ?>"; if(v==='teacher'||v==='student') INITIAL_VIEW=v; })();
+</script>
+
+</body>
+</html>
